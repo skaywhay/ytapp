@@ -1,149 +1,244 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>YT Deck — загрузчик видео</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#09090b" />
+  <title>YT Deck — Панель загрузки видео</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v={{ version }}">
 </head>
 <body>
 
-<div class="noise-overlay"></div>
-
-<header class="topbar">
-  <div class="brand">
-    <span class="brand-mark">
-      <svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5v14l11-7L8 5z" fill="currentColor"/></svg>
-    </span>
-    <div class="brand-text">
-      <span class="brand-name">YT&nbsp;DECK</span>
-      <span class="brand-sub">Панель загрузки видео</span>
-    </div>
-  </div>
-  <div class="ffmpeg-pill {{ 'ok' if ffmpeg_ok else 'warn' }}">
-    <span class="dot"></span>
-    {{ 'FFmpeg подключён' if ffmpeg_ok else 'FFmpeg не найден' }}
-  </div>
-</header>
-
-<main class="deck">
-
-  <!-- LOAD SLOT -->
-  <section class="panel load-slot">
-    <div class="slot-label">01 · Загрузите ссылку</div>
-    <div class="slot-row">
-      <input id="url-input" type="text" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off" />
-      <button id="probe-btn" class="btn btn-brass">
-        <span class="btn-label">Считать</span>
-        <span class="spinner" hidden></span>
-      </button>
-    </div>
-    <p id="probe-error" class="error-line" hidden></p>
-
-    <button id="proxy-toggle-btn" type="button" class="proxy-toggle">Прокси (опционально) ▾</button>
-    <div id="proxy-row" class="proxy-row" hidden>
-      <input id="proxy-input" type="text" placeholder="socks5://127.0.0.1:1080 или http://user:pass@host:port" autocomplete="off" />
-      <p class="hint-line">Если системный VPN не покрывает трафик приложения — укажите здесь адрес прокси/SOCKS вашего VPN-клиента. Сохраняется в этом браузере.</p>
-    </div>
-  </section>
-
-  <!-- TRACK CARD -->
-  <section id="track-card" class="panel track-card" hidden>
-    <div class="cover-wrap">
-      <img id="track-thumb" alt="" />
-      <span id="track-duration" class="duration-chip"></span>
-    </div>
-    <div class="track-meta">
-      <h2 id="track-title">—</h2>
-      <p id="track-uploader" class="muted"></p>
-    </div>
-  </section>
-
-  <!-- CHANNEL STRIPS -->
-  <section id="channels" class="channels" hidden>
-
-    <div class="strip">
-      <div class="strip-head">
-        <span class="strip-index">02</span>
-        <span class="strip-title">Видеоканал</span>
-        <label class="toggle">
-          <input type="checkbox" id="video-enabled" checked>
-          <span class="toggle-track"><span class="toggle-thumb"></span></span>
-        </label>
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
       </div>
-      <div class="strip-body" id="video-body">
-        <label class="field-label">Качество</label>
-        <select id="video-select" class="deck-select"></select>
-        <label class="field-label">Контейнер (при склейке со звуком)</label>
-        <div class="chip-row" id="container-chips">
-          <button class="chip active" data-value="mp4">MP4</button>
-          <button class="chip" data-value="mkv">MKV</button>
-          <button class="chip" data-value="webm">WEBM</button>
+      <div class="brand-text">
+        <div class="brand-title-wrap">
+          <span class="brand-name">YT DECK</span>
+          <span class="brand-pill">v2.0</span>
+        </div>
+        <span class="brand-sub">Инженерная панель выгрузки медиапотоков</span>
+      </div>
+    </div>
+
+    <div class="ffmpeg-pill {{ 'ok' if ffmpeg_ok else 'warn' }}" title="{{ 'FFmpeg подключён и готов к склейке' if ffmpeg_ok else 'FFmpeg не найден в PATH — установите для склейки и конвертации' }}">
+      <span class="dot" aria-hidden="true"></span>
+      <span>{{ 'FFmpeg активен' if ffmpeg_ok else 'FFmpeg не найден' }}</span>
+    </div>
+  </header>
+
+  <!-- MAIN DECK -->
+  <main class="deck">
+
+    <!-- 01: LOAD SLOT -->
+    <section class="panel load-slot" aria-labelledby="heading-slot-1">
+      <div class="slot-header">
+        <span class="step-num">01</span>
+        <h2 id="heading-slot-1" class="slot-title">Входной поток (URL)</h2>
+      </div>
+
+      <div class="slot-row">
+        <div class="input-wrap">
+          <svg class="input-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+          <input id="url-input" type="text" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off" spellcheck="false" aria-label="Ссылка на видео" />
+        </div>
+
+        <button id="probe-btn" type="button" class="btn btn-primary">
+          <span class="btn-label">Считать</span>
+          <span class="spinner" hidden aria-hidden="true"></span>
+        </button>
+      </div>
+
+      <div id="probe-error" class="error-banner" hidden role="alert"></div>
+
+      <!-- PROXY ACCORDION -->
+      <div class="proxy-wrap">
+        <button id="proxy-toggle-btn" type="button" class="proxy-toggle" aria-expanded="false" aria-controls="proxy-row">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+          </svg>
+          <span id="proxy-toggle-text">Сетевой прокси / SOCKS (опционально)</span>
+          <span class="chevron" aria-hidden="true">▾</span>
+        </button>
+
+        <div id="proxy-row" class="proxy-row" hidden>
+          <input id="proxy-input" type="text" placeholder="socks5://127.0.0.1:1080 или http://user:pass@host:port" autocomplete="off" spellcheck="false" />
+          <p class="hint-line">Если YouTube недоступен из-за ограничений провайдера или VPN не перехватывает CLI-трафик — укажите локальный прокси. Настройка сохраняется в браузере.</p>
         </div>
       </div>
-    </div>
+    </section>
 
-    <div class="strip">
-      <div class="strip-head">
-        <span class="strip-index">03</span>
-        <span class="strip-title">Аудиоканал</span>
-        <label class="toggle">
-          <input type="checkbox" id="audio-enabled" checked>
-          <span class="toggle-track"><span class="toggle-thumb"></span></span>
-        </label>
+    <!-- 02: SAVE DIRECTORY SLOT (ALWAYS VISIBLE) -->
+    <section class="panel dest-panel" aria-labelledby="heading-slot-2">
+      <div class="slot-header">
+        <span class="step-num">02</span>
+        <h2 id="heading-slot-2" class="slot-title">Папка сохранения</h2>
       </div>
-      <div class="strip-body" id="audio-body">
-        <label class="field-label">Качество</label>
-        <select id="audio-select" class="deck-select"></select>
-        <label class="field-label">Формат (если скачивать отдельно)</label>
-        <div class="chip-row" id="audio-format-chips">
-          <button class="chip active" data-value="mp3">MP3</button>
-          <button class="chip" data-value="m4a">M4A</button>
-          <button class="chip" data-value="opus">OPUS</button>
-          <button class="chip" data-value="wav">WAV</button>
-        </div>
-      </div>
-    </div>
 
-  </section>
-
-  <!-- MODE + TRANSFER -->
-  <section id="transfer" class="panel transfer" hidden>
-    <div class="mode-readout">
-      <span class="mode-label">Режим:</span>
-      <span id="mode-text" class="mode-value">Видео + звук (склейка)</span>
-    </div>
-    <div class="dest-row">
-      <span class="field-label">Папка сохранения</span>
       <div class="dest-line">
-        <code id="dest-path">{{ default_dir }}</code>
-        <button id="open-folder-btn" class="btn-ghost" type="button">Открыть</button>
+        <input id="dest-input" type="text" class="dest-input" value="{{ default_dir }}" spellcheck="false" autocomplete="off" aria-label="Путь для сохранения файлов" />
+        <div class="dest-buttons">
+          <button id="select-folder-btn" class="btn btn-secondary" type="button" title="Выбрать другую папку в проводнике">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/>
+            </svg>
+            <span class="btn-text">Выбрать</span>
+          </button>
+          <button id="open-folder-btn" class="btn btn-secondary" type="button" title="Открыть текущую папку в проводнике">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            <span>Открыть</span>
+          </button>
+        </div>
       </div>
-    </div>
-    <button id="download-btn" class="btn btn-transfer">
-      <span class="btn-label">Скачать</span>
-    </button>
+      <p id="folder-status" class="hint-line" hidden></p>
+    </section>
 
-    <div id="progress-block" class="progress-block" hidden>
-      <div class="led-meter"><div id="led-fill" class="led-fill"></div></div>
-      <div class="progress-readout">
-        <span id="progress-status">Готовим поток…</span>
-        <span id="progress-stats" class="mono-text"></span>
+    <!-- TRACK CARD PREVIEW -->
+    <article id="track-card" class="panel track-card" hidden aria-label="Сведения о выбранном видео">
+      <div class="cover-wrap">
+        <img id="track-thumb" alt="Обложка видео" />
+        <span id="track-duration" class="duration-chip" aria-label="Длительность"></span>
       </div>
-    </div>
-    <p id="download-error" class="error-line" hidden></p>
-    <div id="done-banner" class="done-banner" hidden>
-      ✓ Готово: <span id="done-filename"></span>
-    </div>
-  </section>
+      <div class="track-meta">
+        <h3 id="track-title" class="track-title">—</h3>
+        <p id="track-uploader" class="track-uploader"></p>
+      </div>
+    </article>
 
-</main>
+    <!-- 03 & 04: CHANNEL STRIPS -->
+    <section id="channels" class="channels" hidden aria-label="Настройка каналов видео и аудио">
 
-<footer class="footer">Локальный интерфейс поверх yt-dlp · для видео, на которые у вас есть права</footer>
+      <!-- VIDEO CHANNEL -->
+      <div class="strip">
+        <div class="strip-head">
+          <span class="step-num">03</span>
+          <span class="strip-title">Видеоканал</span>
+          <label class="toggle" title="Включить / отключить видео">
+            <input type="checkbox" id="video-enabled" checked>
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+        </div>
+        <div class="strip-body" id="video-body">
+          <label class="field-label" for="video-select">Качество видеопотока</label>
+          <select id="video-select" class="deck-select"></select>
 
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+          <span class="field-label">Контейнер при склейке</span>
+          <div class="chip-row" id="container-chips" role="radiogroup" aria-label="Контейнер видео">
+            <button type="button" class="chip active" data-value="mp4" role="radio" aria-checked="true">MP4</button>
+            <button type="button" class="chip" data-value="mkv" role="radio" aria-checked="false">MKV</button>
+            <button type="button" class="chip" data-value="webm" role="radio" aria-checked="false">WEBM</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUDIO CHANNEL -->
+      <div class="strip">
+        <div class="strip-head">
+          <span class="step-num">04</span>
+          <span class="strip-title">Аудиоканал</span>
+          <label class="toggle" title="Включить / отключить аудио">
+            <input type="checkbox" id="audio-enabled" checked>
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+          </label>
+        </div>
+        <div class="strip-body" id="audio-body">
+          <label class="field-label" for="audio-select">Битрейт / дорожка</label>
+          <select id="audio-select" class="deck-select"></select>
+
+          <span class="field-label">Формат экспорта звука</span>
+          <div class="chip-row" id="audio-format-chips" role="radiogroup" aria-label="Формат экспорта звука">
+            <button type="button" class="chip active" data-value="mp3" role="radio" aria-checked="true">MP3</button>
+            <button type="button" class="chip" data-value="m4a" role="radio" aria-checked="false">M4A</button>
+            <button type="button" class="chip" data-value="opus" role="radio" aria-checked="false">OPUS</button>
+            <button type="button" class="chip" data-value="wav" role="radio" aria-checked="false">WAV</button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 05: TRANSFER / DOWNLOAD PANEL -->
+    <section id="transfer" class="panel transfer" hidden aria-labelledby="heading-slot-5">
+      <div class="transfer-head">
+        <div class="slot-header">
+          <span class="step-num">05</span>
+          <h2 id="heading-slot-5" class="slot-title">Запуск выгрузки</h2>
+        </div>
+        <div class="mode-readout">
+          <span class="mode-label">Режим:</span>
+          <span id="mode-text" class="mode-value">Видео + звук · склейка в MP4</span>
+        </div>
+      </div>
+
+      <!-- DOWNLOAD BUTTON -->
+      <button id="download-btn" type="button" class="btn btn-transfer">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        <span class="btn-label">Скачать</span>
+      </button>
+
+      <!-- PROGRESS BLOCK -->
+      <div id="progress-block" class="progress-block" hidden>
+        <div class="meter-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Прогресс загрузки">
+          <div id="led-fill" class="meter-fill"></div>
+        </div>
+        <div class="progress-readout">
+          <span id="progress-status" class="progress-status">Подготовка потока…</span>
+          <span id="progress-stats" class="progress-stats font-mono"></span>
+        </div>
+      </div>
+
+      <!-- ERROR LINE -->
+      <div id="download-error" class="error-banner" hidden role="alert"></div>
+
+      <!-- DONE BANNER -->
+      <div id="done-banner" class="done-banner" hidden role="status">
+        <div class="done-icon" aria-hidden="true">✓</div>
+        <div class="done-content">
+          <div class="done-title">Файл готов к сохранению</div>
+          <div id="done-filename" class="done-filename font-mono"></div>
+        </div>
+        <div class="done-actions">
+          <button id="open-done-folder-btn" type="button" class="btn btn-primary btn-sm">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+            <span>Открыть папку</span>
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <p>YT DECK · Локальный веб-интерфейс поверх yt-dlp и FFmpeg · Для контента, на который у вас есть права</p>
+  </footer>
+
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}?v={{ version }}"></script>
 </body>
 </html>

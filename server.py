@@ -15,6 +15,7 @@ import shutil
 import threading
 import subprocess
 import sys
+import base64
 from pathlib import Path
 
 from flask import Flask, render_template, request, jsonify, send_from_directory
@@ -49,7 +50,56 @@ def ffmpeg_available():
 
 @app.route("/")
 def index():
-    return render_template("index.html", default_dir=DEFAULT_DOWNLOAD_DIR, ffmpeg_ok=ffmpeg_available())
+    return render_template(
+        "index.html",
+        default_dir=DEFAULT_DOWNLOAD_DIR,
+        ffmpeg_ok=ffmpeg_available(),
+        version=int(time.time())
+    )
+
+
+def choose_directory(initial_dir=None):
+    base_dir = initial_dir if (initial_dir and os.path.isdir(initial_dir)) else DEFAULT_DOWNLOAD_DIR
+    picker_script = os.path.join(app.root_path, "picker.py")
+    try:
+        res = subprocess.run(
+            [sys.executable, picker_script, base_dir],
+            capture_output=True,
+            text=True,
+            timeout=120
+        )
+        for line in res.stdout.splitlines():
+            line = line.strip()
+            if line.startswith("BASE64:"):
+                b64_part = line.split("BASE64:", 1)[1].strip()
+                folder = base64.b64decode(b64_part).decode("utf-8")
+                if folder and os.path.isdir(folder):
+                    return folder
+            elif line and os.path.isdir(line):
+                return line
+    except Exception as e:
+        print(f"Folder picker error: {e}")
+
+    return None
+
+
+@app.route("/api/select-folder", methods=["POST"])
+def select_folder():
+    data = request.get_json(silent=True) or {}
+    current = data.get("current_folder") or DEFAULT_DOWNLOAD_DIR
+    folder = choose_directory(current)
+    if folder:
+        return jsonify({"ok": True, "folder": folder})
+    return jsonify({"ok": False, "cancelled": True})
+
+
+@app.route("/api/status", methods=["GET"])
+def get_status():
+    return jsonify({
+        "ok": True,
+        "ffmpeg_ok": ffmpeg_available(),
+        "default_dir": DEFAULT_DOWNLOAD_DIR,
+    })
 
 
 @app.route("/api/probe", methods=["POST"])
@@ -266,6 +316,7 @@ def download():
 def open_folder():
     data = request.get_json(force=True)
     folder = data.get("folder") or DEFAULT_DOWNLOAD_DIR
+    os.makedirs(folder, exist_ok=True)
     try:
         if sys.platform == "win32":
             os.startfile(folder)
@@ -278,12 +329,39 @@ def open_folder():
         return jsonify({"ok": False, "error": str(e)}), 400
 
 
+@app.route("/api/file/<job_id>", methods=["GET"])
+def get_file(job_id):
+    job = JOBS.get(job_id)
+    if not job or job.get("status") != "done":
+        return jsonify({"ok": False, "error": "Файл ещё не готов или задача не найдена"}), 404
+    file_path = job.get("path")
+    if not file_path or not os.path.exists(file_path):
+        return jsonify({"ok": False, "error": "Файл не найден на диске"}), 404
+    dir_name = os.path.dirname(file_path)
+    file_name = os.path.basename(file_path)
+    return send_from_directory(dir_name, file_name, as_attachment=True)
+
+
+def find_available_port(default_port=5050):
+    import socket
+    for p in [default_port, 5051, 5052, 5500, 8080]:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(("127.0.0.1", p))
+                return p
+            except OSError:
+                continue
+    return default_port
+
+
 if __name__ == "__main__":
+    env_port = os.environ.get("PORT")
+    port = int(env_port) if env_port else find_available_port(5050)
     print("=" * 60)
-    print(" YT Deck запущен: http://127.0.0.1:5000")
+    print(f" YT Deck запущен: http://127.0.0.1:{port}")
     print(f" Папка загрузок по умолчанию: {DEFAULT_DOWNLOAD_DIR}")
     if not ffmpeg_available():
         print(" ВНИМАНИЕ: ffmpeg не найден в PATH — склейка видео+звука")
         print(" и конвертация аудио работать не будут. Установите ffmpeg.")
     print("=" * 60)
-    socketio.run(app, host="127.0.0.1", port=5000, debug=False, allow_unsafe_werkzeug=True)
+    socketio.run(app, host="127.0.0.1", port=port, debug=False, allow_unsafe_werkzeug=True)
