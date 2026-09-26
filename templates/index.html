@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>YT Deck — загрузчик видео</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="noise-overlay"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">
+      <svg viewBox="0 0 24 24" width="22" height="22"><path d="M8 5v14l11-7L8 5z" fill="currentColor"/></svg>
+    </span>
+    <div class="brand-text">
+      <span class="brand-name">YT&nbsp;DECK</span>
+      <span class="brand-sub">Панель загрузки видео</span>
+    </div>
+  </div>
+  <div class="ffmpeg-pill {{ 'ok' if ffmpeg_ok else 'warn' }}">
+    <span class="dot"></span>
+    {{ 'FFmpeg подключён' if ffmpeg_ok else 'FFmpeg не найден' }}
+  </div>
+</header>
+
+<main class="deck">
+
+  <!-- LOAD SLOT -->
+  <section class="panel load-slot">
+    <div class="slot-label">01 · Загрузите ссылку</div>
+    <div class="slot-row">
+      <input id="url-input" type="text" placeholder="https://www.youtube.com/watch?v=…" autocomplete="off" />
+      <button id="probe-btn" class="btn btn-brass">
+        <span class="btn-label">Считать</span>
+        <span class="spinner" hidden></span>
+      </button>
+    </div>
+    <p id="probe-error" class="error-line" hidden></p>
+
+    <button id="proxy-toggle-btn" type="button" class="proxy-toggle">Прокси (опционально) ▾</button>
+    <div id="proxy-row" class="proxy-row" hidden>
+      <input id="proxy-input" type="text" placeholder="socks5://127.0.0.1:1080 или http://user:pass@host:port" autocomplete="off" />
+      <p class="hint-line">Если системный VPN не покрывает трафик приложения — укажите здесь адрес прокси/SOCKS вашего VPN-клиента. Сохраняется в этом браузере.</p>
+    </div>
+  </section>
+
+  <!-- TRACK CARD -->
+  <section id="track-card" class="panel track-card" hidden>
+    <div class="cover-wrap">
+      <img id="track-thumb" alt="" />
+      <span id="track-duration" class="duration-chip"></span>
+    </div>
+    <div class="track-meta">
+      <h2 id="track-title">—</h2>
+      <p id="track-uploader" class="muted"></p>
+    </div>
+  </section>
+
+  <!-- CHANNEL STRIPS -->
+  <section id="channels" class="channels" hidden>
+
+    <div class="strip">
+      <div class="strip-head">
+        <span class="strip-index">02</span>
+        <span class="strip-title">Видеоканал</span>
+        <label class="toggle">
+          <input type="checkbox" id="video-enabled" checked>
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        </label>
+      </div>
+      <div class="strip-body" id="video-body">
+        <label class="field-label">Качество</label>
+        <select id="video-select" class="deck-select"></select>
+        <label class="field-label">Контейнер (при склейке со звуком)</label>
+        <div class="chip-row" id="container-chips">
+          <button class="chip active" data-value="mp4">MP4</button>
+          <button class="chip" data-value="mkv">MKV</button>
+          <button class="chip" data-value="webm">WEBM</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="strip">
+      <div class="strip-head">
+        <span class="strip-index">03</span>
+        <span class="strip-title">Аудиоканал</span>
+        <label class="toggle">
+          <input type="checkbox" id="audio-enabled" checked>
+          <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        </label>
+      </div>
+      <div class="strip-body" id="audio-body">
+        <label class="field-label">Качество</label>
+        <select id="audio-select" class="deck-select"></select>
+        <label class="field-label">Формат (если скачивать отдельно)</label>
+        <div class="chip-row" id="audio-format-chips">
+          <button class="chip active" data-value="mp3">MP3</button>
+          <button class="chip" data-value="m4a">M4A</button>
+          <button class="chip" data-value="opus">OPUS</button>
+          <button class="chip" data-value="wav">WAV</button>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- MODE + TRANSFER -->
+  <section id="transfer" class="panel transfer" hidden>
+    <div class="mode-readout">
+      <span class="mode-label">Режим:</span>
+      <span id="mode-text" class="mode-value">Видео + звук (склейка)</span>
+    </div>
+    <div class="dest-row">
+      <span class="field-label">Папка сохранения</span>
+      <div class="dest-line">
+        <code id="dest-path">{{ default_dir }}</code>
+        <button id="open-folder-btn" class="btn-ghost" type="button">Открыть</button>
+      </div>
+    </div>
+    <button id="download-btn" class="btn btn-transfer">
+      <span class="btn-label">Скачать</span>
+    </button>
+
+    <div id="progress-block" class="progress-block" hidden>
+      <div class="led-meter"><div id="led-fill" class="led-fill"></div></div>
+      <div class="progress-readout">
+        <span id="progress-status">Готовим поток…</span>
+        <span id="progress-stats" class="mono-text"></span>
+      </div>
+    </div>
+    <p id="download-error" class="error-line" hidden></p>
+    <div id="done-banner" class="done-banner" hidden>
+      ✓ Готово: <span id="done-filename"></span>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">Локальный интерфейс поверх yt-dlp · для видео, на которые у вас есть права</footer>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
