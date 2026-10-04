@@ -119,6 +119,70 @@ def get_status():
     })
 
 
+LANGUAGE_NAMES = {
+    "ru": "Русский",
+    "en": "English",
+    "en-us": "English (US)",
+    "en-gb": "English (UK)",
+    "es": "Español",
+    "es-419": "Español (Latino)",
+    "de": "Deutsch",
+    "fr": "Français",
+    "it": "Italiano",
+    "ja": "日本語 (Japanese)",
+    "ko": "한국어 (Korean)",
+    "zh": "中文 (Chinese)",
+    "zh-hans": "简体中文 (Chinese Simplified)",
+    "zh-hant": "繁體中文 (Chinese Traditional)",
+    "pt": "Português",
+    "pt-br": "Português (Brasil)",
+    "pl": "Polski",
+    "uk": "Українська",
+    "tr": "Türkçe",
+    "hi": "हिन्दी (Hindi)",
+    "ar": "العربية (Arabic)",
+    "id": "Indonesia",
+    "vi": "Tiếng Việt",
+    "th": "ไทย (Thai)",
+    "cs": "Čeština",
+    "nl": "Nederlands",
+    "sv": "Svenska",
+    "el": "Ελληνικά",
+    "he": "עברית",
+    "ro": "Română",
+    "hu": "Magyar",
+    "da": "Dansk",
+    "fi": "Suomi",
+    "no": "Norsk",
+}
+
+
+def parse_audio_track(f):
+    lang = (f.get("language") or "").lower()
+    note = f.get("format_note") or ""
+    is_original = "original" in note.lower() or f.get("language_preference") == 10
+    is_dubbed = "dubbed" in note.lower()
+
+    base_lang = lang.split("-")[0] if lang else ""
+    lang_name = LANGUAGE_NAMES.get(lang) or LANGUAGE_NAMES.get(base_lang)
+    if not lang_name:
+        parts = [p.strip() for p in note.split(",") if p.strip()]
+        if parts and not parts[0].lower().startswith("default"):
+            lang_name = parts[0].replace(" - dubbed", "").replace(" - original", "").strip()
+        else:
+            lang_name = lang.upper() if lang else "Основная дорожка"
+
+    if is_original:
+        track_title = f"{lang_name} · Оригинал"
+    elif is_dubbed:
+        track_title = f"{lang_name} · Дубляж"
+    else:
+        track_title = lang_name
+
+    track_id = lang if lang else ("orig" if is_original else "default")
+    return track_id, track_title, is_original
+
+
 @app.route("/api/probe", methods=["POST"])
 def probe():
     data = request.get_json(force=True)
@@ -146,7 +210,7 @@ def probe():
     formats = info.get("formats", []) or []
 
     video_formats = {}
-    audio_formats = {}
+    raw_tracks = {}
 
     for f in formats:
         vcodec = f.get("vcodec")
@@ -176,10 +240,24 @@ def probe():
                 video_formats[key] = candidate
 
         elif acodec and acodec != "none" and (not vcodec or vcodec == "none"):
+            if ext not in ("m4a", "webm", "mp3", "ogg", "opus"):
+                continue
+
+            tid, title, is_orig = parse_audio_track(f)
+            if tid not in raw_tracks:
+                raw_tracks[tid] = {
+                    "id": tid,
+                    "title": title,
+                    "language": f.get("language") or "",
+                    "is_original": is_orig,
+                    "is_russian": tid.startswith("ru"),
+                    "formats_map": {},
+                }
+
             abr = f.get("abr") or 0
-            key = (round(abr), ext)
+            f_key = (round(abr), ext)
             size = f.get("filesize") or f.get("filesize_approx")
-            candidate = {
+            cand = {
                 "format_id": fmt_id,
                 "ext": ext,
                 "abr": abr,
@@ -188,12 +266,11 @@ def probe():
                 "size_h": human_size(size),
                 "label": f"{round(abr)} кбит/с · {ext.upper()}" if abr else f"Аудио · {ext.upper()}",
             }
-            existing = audio_formats.get(key)
-            if not existing or (size or 0) > (existing["size"] or 0):
-                audio_formats[key] = candidate
+            existing_f = raw_tracks[tid]["formats_map"].get(f_key)
+            if not existing_f or (size or 0) > (existing_f["size"] or 0):
+                raw_tracks[tid]["formats_map"][f_key] = cand
 
     video_list = sorted(video_formats.values(), key=lambda x: (x["height"], x["fps"]), reverse=True)
-    audio_list = sorted(audio_formats.values(), key=lambda x: x["abr"], reverse=True)
 
     # De-dupe near-identical resolutions but keep format diversity (mp4/webm) capped
     def dedupe(lst, key_field, cap=9):
@@ -210,7 +287,30 @@ def probe():
         return out
 
     video_list = dedupe(video_list, "height")
-    audio_list = dedupe(audio_list, "abr", cap=6)
+
+    audio_tracks = []
+    for t_data in raw_tracks.values():
+        f_list = sorted(t_data["formats_map"].values(), key=lambda x: x["abr"], reverse=True)
+        if f_list:
+            audio_tracks.append({
+                "id": t_data["id"],
+                "title": t_data["title"],
+                "language": t_data["language"],
+                "is_original": t_data["is_original"],
+                "is_russian": t_data["is_russian"],
+                "formats": f_list,
+            })
+
+    def track_sort_key(t):
+        if t["is_russian"]:
+            return (0, t["title"])
+        elif t["is_original"]:
+            return (1, t["title"])
+        else:
+            return (2, t["title"])
+
+    audio_tracks.sort(key=track_sort_key)
+    default_audio_formats = audio_tracks[0]["formats"] if audio_tracks else []
 
     thumbnail = info.get("thumbnail")
     duration = info.get("duration") or 0
@@ -225,7 +325,8 @@ def probe():
         "thumbnail": thumbnail,
         "duration": dur_str,
         "video_formats": video_list,
-        "audio_formats": audio_list,
+        "audio_tracks": audio_tracks,
+        "audio_formats": default_audio_formats,
     })
 
 

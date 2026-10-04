@@ -159,7 +159,16 @@
           </label>
         </div>
         <div class="strip-body" id="audio-body">
-          <label class="field-label" for="audio-select">Битрейт / дорожка</label>
+          <!-- Блок выбора языка/дубляжа (активируется при наличии нескольких аудиодорожек) -->
+          <div id="audio-track-wrap" class="field-group" hidden>
+            <div class="field-label-row">
+              <label class="field-label" for="audio-track-select">Язык / звуковая дорожка</label>
+              <span id="audio-track-badge" class="track-badge"></span>
+            </div>
+            <select id="audio-track-select" class="deck-select"></select>
+          </div>
+
+          <label class="field-label" for="audio-select">Качество звука / битрейт</label>
           <select id="audio-select" class="deck-select"></select>
 
           <span class="field-label">Формат экспорта звука</span>

@@ -34,6 +34,9 @@ const videoBody = $('video-body');
 const audioBody = $('audio-body');
 const videoSelect = $('video-select');
 const audioSelect = $('audio-select');
+const audioTrackWrap = $('audio-track-wrap');
+const audioTrackSelect = $('audio-track-select');
+const audioTrackBadge = $('audio-track-badge');
 const containerChips = $('container-chips');
 const audioFormatChips = $('audio-format-chips');
 
@@ -60,6 +63,7 @@ let selectedContainer = 'mp4';
 let selectedAudioFormat = 'mp3';
 let currentJobId = null;
 let lastDownloadedFilename = '';
+let availableAudioTracks = [];
 
 // ==========================================
 // 1. Инициализация и сохранение настроек
@@ -209,6 +213,30 @@ setupChipGroup(audioFormatChips, (v) => {
   updateMode();
 });
 
+function getDubNoun(count) {
+  const rem10 = count % 10;
+  const rem100 = count % 100;
+  if (rem100 >= 11 && rem100 <= 19) return 'дорожек';
+  if (rem10 === 1) return 'дорожка';
+  if (rem10 >= 2 && rem10 <= 4) return 'дорожки';
+  return 'дорожек';
+}
+
+function updateAudioFormatsForTrack() {
+  const trackIndex = parseInt(audioTrackSelect.value, 10) || 0;
+  const track = availableAudioTracks[trackIndex];
+  if (!track || !track.formats) return;
+
+  fillSelect(
+    audioSelect,
+    track.formats,
+    (f) => `${f.label}${f.size_h ? ' · ' + f.size_h : ''}`
+  );
+  updateMode();
+}
+
+audioTrackSelect.addEventListener('change', updateAudioFormatsForTrack);
+
 function updateMode() {
   const vOn = videoEnabled.checked;
   const aOn = audioEnabled.checked;
@@ -216,13 +244,18 @@ function updateMode() {
   videoBody.classList.toggle('disabled', !vOn);
   audioBody.classList.toggle('disabled', !aOn);
 
+  const currentTrack = (availableAudioTracks.length > 1 && audioTrackSelect.value !== '')
+    ? availableAudioTracks[parseInt(audioTrackSelect.value, 10) || 0]
+    : null;
+  const trackSuffix = currentTrack ? ` [${currentTrack.title.split('·')[0].trim()}]` : '';
+
   let text = '';
   if (vOn && aOn) {
-    text = `Видео + звук · склейка в ${selectedContainer.toUpperCase()}`;
+    text = `Видео + звук${trackSuffix} · склейка в ${selectedContainer.toUpperCase()}`;
   } else if (vOn && !aOn) {
     text = 'Только видеопоток (без звука)';
   } else if (!vOn && aOn) {
-    text = `Только аудиодорожка · ${selectedAudioFormat.toUpperCase()}`;
+    text = `Только аудиодорожка${trackSuffix} · ${selectedAudioFormat.toUpperCase()}`;
   } else {
     text = 'Выберите хотя бы один канал';
   }
@@ -288,17 +321,38 @@ async function probe() {
     trackDuration.textContent = data.duration || '';
     trackCard.hidden = false;
 
-    // Заполнение выпадающих списков форматов
+    // Заполнение выпадающих списков форматов видео
     fillSelect(
       videoSelect,
       data.video_formats,
       (f) => `${f.label}${f.size_h ? ' · ' + f.size_h : ''}`
     );
-    fillSelect(
-      audioSelect,
-      data.audio_formats,
-      (f) => `${f.label}${f.size_h ? ' · ' + f.size_h : ''}`
-    );
+
+    // Заполнение дорожек и форматов звука (с поддержкой множественных дубляжей)
+    availableAudioTracks = data.audio_tracks || [];
+    if (availableAudioTracks.length > 1) {
+      audioTrackWrap.hidden = false;
+      const count = availableAudioTracks.length;
+      audioTrackBadge.textContent = `${count} ${getDubNoun(count)}`;
+
+      audioTrackSelect.innerHTML = '';
+      availableAudioTracks.forEach((track, index) => {
+        const opt = document.createElement('option');
+        opt.value = index;
+        opt.textContent = `🌐 ${track.title}`;
+        audioTrackSelect.appendChild(opt);
+      });
+      audioTrackSelect.selectedIndex = 0;
+      updateAudioFormatsForTrack();
+    } else {
+      audioTrackWrap.hidden = true;
+      const defaultFormats = data.audio_formats || (availableAudioTracks[0] ? availableAudioTracks[0].formats : []);
+      fillSelect(
+        audioSelect,
+        defaultFormats,
+        (f) => `${f.label}${f.size_h ? ' · ' + f.size_h : ''}`
+      );
+    }
 
     channelsSection.hidden = false;
     transferSection.hidden = false;
