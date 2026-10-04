@@ -11,5 +11,7 @@ frontend/.cache/
 frontend/dist/
 
 # OS
-.DS_Store
-Thumbs.db
+# PyInstaller temporary build artifacts
+build/
+*.spec.bak
+
