@@ -21,12 +21,14 @@ def get_user_data_dir():
     portable_marker = os.path.join(APP_DIR, "portable.txt")
     if os.path.isfile(portable_marker):
         d = os.path.join(APP_DIR, "data")
+    elif sys.platform == "win32":
+        appdata = os.environ.get("APPDATA") or str(Path.home() / "AppData" / "Roaming")
+        d = os.path.join(appdata, "YT-Deck")
+    elif sys.platform == "darwin":
+        d = os.path.join(str(Path.home()), "Library", "Application Support", "YT-Deck")
     else:
-        appdata = os.environ.get("APPDATA")
-        if appdata:
-            d = os.path.join(appdata, "YT-Deck")
-        else:
-            d = os.path.join(str(Path.home()), ".ytdeck")
+        xdg_config = os.environ.get("XDG_CONFIG_HOME") or os.path.join(str(Path.home()), ".config")
+        d = os.path.join(xdg_config, "yt-deck")
     os.makedirs(d, exist_ok=True)
     return d
 

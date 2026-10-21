@@ -1,0 +1,331 @@
+:root {
+  --md-primary: #ffb4ab;
+  --md-on-primary: #690005;
+  --md-primary-container: #93000a;
+  --md-on-primary-container: #ffdad6;
+  --md-surface: #141218;
+  --md-surface-dim: #141218;
+  --md-surface-container-low: #1d1b20;
+  --md-surface-container: #211f26;
+  --md-surface-container-high: #2b2930;
+  --md-on-surface: #e6e1e5;
+  --md-on-surface-variant: #cac4d0;
+  --md-outline: #938f99;
+  --md-outline-variant: #49454f;
+  --md-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  --md-shape-sm: 8px;
+  --md-shape-md: 12px;
+  --md-shape-lg: 16px;
+  --md-shape-pill: 9999px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+}
+
+body {
+  font-family: var(--md-font);
+  background-color: var(--md-surface);
+  color: var(--md-on-surface);
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.installer-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Header */
+.installer-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  background-color: var(--md-surface-container-low);
+  border-bottom: 1px solid var(--md-outline-variant);
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--md-on-surface);
+}
+
+.brand-version {
+  font-size: 12px;
+  color: var(--md-on-surface-variant);
+}
+
+/* Main */
+.installer-main {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  position: relative;
+}
+
+.installer-step {
+  display: none;
+  flex-direction: column;
+  gap: 20px;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.installer-step.active {
+  display: flex;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.step-headline h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--md-on-surface);
+}
+
+.step-desc {
+  font-size: 13px;
+  color: var(--md-on-surface-variant);
+  line-height: 1.4;
+}
+
+.text-center {
+  text-align: center;
+}
+
+/* Cards */
+.m3-card {
+  background-color: var(--md-surface-container);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--md-shape-md);
+  padding: 16px;
+}
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--md-primary);
+  margin-bottom: 8px;
+}
+
+.path-picker-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.m3-input {
+  flex: 1;
+  background-color: var(--md-surface-container-high);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: var(--md-shape-sm);
+  color: var(--md-on-surface);
+  font-family: inherit;
+  font-size: 13px;
+  padding: 10px 12px;
+  outline: none;
+  transition: border-color 0.2s;
+  user-select: text;
+}
+
+.m3-input:focus {
+  border-color: var(--md-primary);
+}
+
+.path-hint {
+  display: block;
+  font-size: 11px;
+  color: var(--md-on-surface-variant);
+  margin-top: 8px;
+  line-height: 1.3;
+}
+
+/* Checkboxes */
+.options-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.m3-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--md-on-surface);
+}
+
+.m3-checkbox-label.center-label {
+  justify-content: center;
+  margin-top: 12px;
+}
+
+.m3-checkbox-label input[type="checkbox"] {
+  display: none;
+}
+
+.m3-checkbox-custom {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 2px solid var(--md-outline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.m3-checkbox-label input[type="checkbox"]:checked + .m3-checkbox-custom {
+  background-color: var(--md-primary);
+  border-color: var(--md-primary);
+}
+
+.m3-checkbox-label input[type="checkbox"]:checked + .m3-checkbox-custom::after {
+  content: "";
+  width: 5px;
+  height: 9px;
+  border: solid var(--md-on-primary);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-bottom: 2px;
+}
+
+/* Progress */
+.progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.m3-linear-progress {
+  width: 100%;
+  height: 8px;
+  background-color: var(--md-surface-container-high);
+  border-radius: var(--md-shape-pill);
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--md-primary);
+  border-radius: var(--md-shape-pill);
+  transition: width 0.25s ease-out;
+}
+
+.progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.status-text {
+  color: var(--md-on-surface);
+}
+
+.percent-text {
+  font-weight: 600;
+  color: var(--md-primary);
+}
+
+/* Success Mark */
+.success-mark {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+}
+
+/* Footer */
+.installer-footer {
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+  background-color: var(--md-surface-container-low);
+  border-top: 1px solid var(--md-outline-variant);
+  gap: 12px;
+}
+
+.footer-spacer {
+  flex: 1;
+}
+
+/* Buttons */
+.m3-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--md-shape-pill);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.m3-btn:active {
+  transform: scale(0.98);
+}
+
+.m3-btn--filled {
+  background-color: var(--md-primary);
+  color: var(--md-on-primary);
+}
+
+.m3-btn--filled:hover {
+  filter: brightness(1.08);
+}
+
+.m3-btn--outlined {
+  background: transparent;
+  color: var(--md-on-surface);
+  border: 1px solid var(--md-outline-variant);
+}
+
+.m3-btn--outlined:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: var(--md-outline);
+}
+
+.m3-btn--text {
+  background: transparent;
+  color: var(--md-on-surface-variant);
+}
+
+.m3-btn--text:hover {
+  color: var(--md-on-surface);
+  background-color: rgba(255, 255, 255, 0.04);
+}

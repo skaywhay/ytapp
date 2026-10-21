@@ -35,15 +35,12 @@ cleanup_temp_cookies()
 
 
 def find_ffmpeg():
-    local_ffmpeg = os.path.join(APP_DIR, "ffmpeg.exe")
-    if os.path.isfile(local_ffmpeg):
-        return local_ffmpeg
-    sub_ffmpeg = os.path.join(BIN_DIR, "ffmpeg.exe")
-    if os.path.isfile(sub_ffmpeg):
-        return sub_ffmpeg
-    bundle_ffmpeg = os.path.join(BUNDLE_DIR, "bin", "ffmpeg.exe")
-    if os.path.isfile(bundle_ffmpeg):
-        return bundle_ffmpeg
+    exts = [".exe", ""] if sys.platform == "win32" else [""]
+    for ext in exts:
+        for base in [APP_DIR, BIN_DIR, os.path.join(BUNDLE_DIR, "bin")]:
+            cand = os.path.join(base, f"ffmpeg{ext}")
+            if os.path.isfile(cand) and (sys.platform == "win32" or os.access(cand, os.X_OK)):
+                return cand
     path_ffmpeg = shutil.which("ffmpeg")
     if path_ffmpeg:
         return path_ffmpeg
@@ -66,7 +63,7 @@ def get_ytdlp_version():
             return ver
     except Exception:
         pass
-    bin_ytdlp = os.path.join(BIN_DIR, "yt-dlp.exe")
+    bin_ytdlp = os.path.join(BIN_DIR, "yt-dlp.exe" if sys.platform == "win32" else "yt-dlp")
     if os.path.isfile(bin_ytdlp):
         try:
             res = subprocess.run([bin_ytdlp, "--version"], capture_output=True, text=True, timeout=3)
@@ -82,18 +79,21 @@ def find_js_runtime():
     Detect JavaScript runtime (QuickJS, Node.js, Deno, Bun) for full format decryption and n-sig bypass.
     Checks bundled and local bin directory first, then system PATH, then common install locations.
     """
+    exts = [".exe", ""] if sys.platform == "win32" else [""]
+
     # 1. Prioritize bundled / local standalone runtimes (QuickJS, Node, Deno)
-    local_candidates = [
-        ("quickjs", os.path.join(BIN_DIR, "qjs.exe")),
-        ("quickjs", os.path.join(BIN_DIR, "quickjs.exe")),
-        ("node", os.path.join(BIN_DIR, "node.exe")),
-        ("deno", os.path.join(BIN_DIR, "deno.exe")),
-        ("quickjs", os.path.join(BUNDLE_DIR, "bin", "qjs.exe")),
-        ("quickjs", os.path.join(APP_DIR, "qjs.exe")),
-    ]
-    for rtype, p in local_candidates:
-        if os.path.isfile(p):
-            return rtype, p
+    for ext in exts:
+        local_candidates = [
+            ("quickjs", os.path.join(BIN_DIR, f"qjs{ext}")),
+            ("quickjs", os.path.join(BIN_DIR, f"quickjs{ext}")),
+            ("node", os.path.join(BIN_DIR, f"node{ext}")),
+            ("deno", os.path.join(BIN_DIR, f"deno{ext}")),
+            ("quickjs", os.path.join(BUNDLE_DIR, "bin", f"qjs{ext}")),
+            ("quickjs", os.path.join(APP_DIR, f"qjs{ext}")),
+        ]
+        for rtype, p in local_candidates:
+            if os.path.isfile(p) and (sys.platform == "win32" or os.access(p, os.X_OK)):
+                return rtype, p
 
     # 2. Check system PATH
     for name in ("qjs", "quickjs", "node", "nodejs", "deno", "bun"):
@@ -105,18 +105,32 @@ def find_js_runtime():
                 return "node", p
             return name, p
 
-    # 3. Common system installation paths on Windows
-    common_paths = [
-        ("node", r"C:\Program Files\nodejs\node.exe"),
-        ("node", r"C:\Program Files (x86)\nodejs\node.exe"),
-        ("node", os.path.expandvars(r"%LOCALAPPDATA%\Programs\node\node.exe")),
-        ("deno", os.path.expandvars(r"%USERPROFILE%\.deno\bin\deno.exe")),
-        ("bun", os.path.expandvars(r"%USERPROFILE%\.bun\bin\bun.exe")),
-        ("quickjs", os.path.expandvars(r"%LOCALAPPDATA%\Programs\quickjs\qjs.exe")),
-        ("quickjs", os.path.expandvars(r"%USERPROFILE%\.quickjs\qjs.exe")),
-    ]
+    # 3. Common system installation paths on Windows & Unix
+    if sys.platform == "win32":
+        common_paths = [
+            ("node", r"C:\Program Files\nodejs\node.exe"),
+            ("node", r"C:\Program Files (x86)\nodejs\node.exe"),
+            ("node", os.path.expandvars(r"%LOCALAPPDATA%\Programs\node\node.exe")),
+            ("deno", os.path.expandvars(r"%USERPROFILE%\.deno\bin\deno.exe")),
+            ("bun", os.path.expandvars(r"%USERPROFILE%\.bun\bin\bun.exe")),
+            ("quickjs", os.path.expandvars(r"%LOCALAPPDATA%\Programs\quickjs\qjs.exe")),
+            ("quickjs", os.path.expandvars(r"%USERPROFILE%\.quickjs\qjs.exe")),
+        ]
+    else:
+        home = str(Path.home())
+        common_paths = [
+            ("node", "/usr/local/bin/node"),
+            ("node", "/usr/bin/node"),
+            ("node", "/opt/homebrew/bin/node"),
+            ("deno", os.path.join(home, ".deno", "bin", "deno")),
+            ("bun", os.path.join(home, ".bun", "bin", "bun")),
+            ("quickjs", "/usr/local/bin/qjs"),
+            ("quickjs", "/opt/homebrew/bin/qjs"),
+            ("quickjs", os.path.join(home, ".local", "bin", "qjs")),
+        ]
+
     for rtype, p in common_paths:
-        if os.path.isfile(p):
+        if os.path.isfile(p) and (sys.platform == "win32" or os.access(p, os.X_OK)):
             return rtype, p
 
     return None, None

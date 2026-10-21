@@ -15,9 +15,12 @@ venv.bak/
 # Binaries & Executables
 *.exe
 YT_Deck.exe
+YT_Deck_Setup.exe
 dist/
 build/
 bin/
+installer/dist/
+installer/build/
 *.spec.bak
 
 # App runtime & downloaded media files

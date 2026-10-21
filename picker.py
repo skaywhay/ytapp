@@ -69,6 +69,59 @@ if ($res -eq [System.Windows.Forms.DialogResult]::OK -and $dialog.SelectedPath) 
     return None
 
 
+def pick_with_macos(initial_dir):
+    """
+    Открывает нативный диалог выбора папки macOS через AppleScript (Cocoa).
+    """
+    if sys.platform != "darwin":
+        return None
+    try:
+        escaped_dir = initial_dir.replace('"', '\\"')
+        cmd = f'osascript -e \'POSIX path of (choose folder with prompt "Выберите папку для сохранения" default location POSIX file "{escaped_dir}")\''
+        res = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=120)
+        out = res.stdout.strip()
+        if out and os.path.isdir(out):
+            return os.path.normpath(out)
+    except Exception as e:
+        sys.stderr.write(f"macOS osascript error: {e}\n")
+    return None
+
+
+def pick_with_linux(initial_dir):
+    """
+    Открывает нативный диалог выбора папки Linux через zenity или kdialog.
+    """
+    if sys.platform in ("win32", "darwin"):
+        return None
+    try:
+        res = subprocess.run(
+            ["zenity", "--file-selection", "--directory", f"--filename={initial_dir}/", "--title=Выберите папку для сохранения"],
+            capture_output=True,
+            text=True,
+            timeout=120
+        )
+        out = res.stdout.strip()
+        if out and os.path.isdir(out):
+            return os.path.normpath(out)
+    except Exception:
+        pass
+
+    try:
+        res = subprocess.run(
+            ["kdialog", "--getexistingdirectory", initial_dir, "--title", "Выберите папку для сохранения"],
+            capture_output=True,
+            text=True,
+            timeout=120
+        )
+        out = res.stdout.strip()
+        if out and os.path.isdir(out):
+            return os.path.normpath(out)
+    except Exception:
+        pass
+
+    return None
+
+
 def pick_with_tkinter(initial_dir):
     """
     Кроссплатформенный фоллбэк через Tkinter с topmost окном.
@@ -99,11 +152,14 @@ def main():
 
     folder = None
 
-    # На Windows приоритет у нативного PowerShell диалога
     if sys.platform == "win32":
         folder = pick_with_powershell(initial_dir)
+    elif sys.platform == "darwin":
+        folder = pick_with_macos(initial_dir)
+    else:
+        folder = pick_with_linux(initial_dir)
 
-    # Фоллбэк (или для Linux/macOS) — Tkinter
+    # Универсальный фоллбэк Tkinter
     if not folder:
         folder = pick_with_tkinter(initial_dir)
 

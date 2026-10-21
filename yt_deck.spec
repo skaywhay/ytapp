@@ -1,6 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 import os
+import sys
 from PyInstaller.utils.hooks import collect_data_files, collect_submodules
 
 block_cipher = None
@@ -8,11 +9,21 @@ block_cipher = None
 datas = [
     ('templates', 'templates'),
     ('static', 'static'),
-    ('icon.ico', '.'),
-    ('bin/qjs.exe', 'bin'),
 ]
 
-for pkg in ['yt_dlp', 'webview', 'clr_loader', 'pythonnet', 'curl_cffi']:
+if os.path.isfile('icon.ico'):
+    datas.append(('icon.ico', '.'))
+
+for qjs_cand in ['bin/qjs.exe', 'bin/qjs']:
+    if os.path.isfile(qjs_cand):
+        datas.append((qjs_cand, 'bin'))
+        break
+
+packages_to_collect = ['yt_dlp', 'webview', 'curl_cffi']
+if sys.platform == 'win32':
+    packages_to_collect += ['clr_loader', 'pythonnet']
+
+for pkg in packages_to_collect:
     try:
         datas += collect_data_files(pkg)
     except Exception:
@@ -27,12 +38,7 @@ hiddenimports = [
     'wsproto',
     'werkzeug',
     'jinja2',
-    'clr',
-    'clr_loader',
-    'pythonnet',
     'webview',
-    'webview.platforms.winforms',
-    'webview.platforms.edgechromium',
     'core',
     'core.config',
     'core.engine',
@@ -44,6 +50,24 @@ hiddenimports = [
     'services.media_trim',
     'services.updater',
 ]
+
+if sys.platform == 'win32':
+    hiddenimports += [
+        'clr',
+        'clr_loader',
+        'pythonnet',
+        'webview.platforms.winforms',
+        'webview.platforms.edgechromium',
+    ]
+elif sys.platform == 'darwin':
+    hiddenimports += [
+        'webview.platforms.cocoa',
+    ]
+else:
+    hiddenimports += [
+        'webview.platforms.gtk',
+        'webview.platforms.qt',
+    ]
 
 for pkg in ['yt_dlp.extractor', 'webview', 'core', 'api', 'services', 'curl_cffi']:
     try:
@@ -89,5 +113,18 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='icon.ico',
+    icon='icon.ico' if os.path.isfile('icon.ico') else None,
 )
+
+if sys.platform == 'darwin':
+    app = BUNDLE(
+        exe,
+        name='YT_Deck.app',
+        icon='icon.ico' if os.path.isfile('icon.ico') else None,
+        bundle_identifier='com.ytdeck.app',
+        info_plist={
+            'NSHighResolutionCapable': 'True',
+            'CFBundleShortVersionString': '2.5.0',
+            'CFBundleName': 'YT Deck',
+        },
+    )

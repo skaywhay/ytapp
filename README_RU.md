@@ -64,33 +64,47 @@
 
 ## Быстрый старт
 
-### Вариант 1. Автономный исполняемый файл (Рекомендуется)
+### Windows
 
-1. Скачайте `YT_Deck.exe` из раздела Releases.
-2. Убедитесь, что `ffmpeg.exe` добавлен в системный `PATH` или помещён в одну папку с `YT_Deck.exe`.
-3. Запустите `YT_Deck.exe`.
+#### Вариант 1. Инсталлятор в стиле Material Design 3 (Рекомендуется)
+1. Скачайте `YT_Deck_Setup.exe` из раздела [Releases](https://github.com/skaywhay/ytapp/releases).
+2. Запустите установщик: выберите папку установки, создание ярлыков на рабочем столе и в меню «Пуск», а также регистрацию в системе.
+3. Запустите YT Deck с рабочего стола или из меню «Пуск».
 
-### Вариант 2. Автоматический скрипт запуска
+#### Вариант 2. Портативная версия (Portable)
+1. Скачайте `YT_Deck-windows-portable.exe` из раздела [Releases](https://github.com/skaywhay/ytapp/releases).
+2. Убедитесь, что `ffmpeg.exe` находится рядом с файлом программы или добавлен в системную переменную `PATH`.
+3. Запустите файл напрямую без установки.
 
-Для запуска из исходного кода на Windows:
+---
 
+### macOS и Linux
+
+#### Запуск из исходного кода (Быстрый старт)
 1. Клонируйте репозиторий:
-   ```cmd
+   ```bash
    git clone https://github.com/skaywhay/ytapp.git
    cd ytapp
    ```
-2. Запустите скрипт:
-   ```cmd
-   run.bat
+2. Сделайте скрипт исполняемым и запустите его:
+   ```bash
+   chmod +x run.sh
+   ./run.sh
    ```
-   Скрипт автоматически создаст виртуальное окружение (`.venv`), установит зависимости из `requirements.txt` и запустит приложение.
+   Скрипт проверит окружение, создаст `.venv`, установит зависимости и откроет десктопное окно приложения.
 
-### Вариант 3. Ручной запуск из терминала
+#### Готовые сборки
+- **macOS**: Скачайте архив `YT_Deck-macOS.zip` из [Releases](https://github.com/skaywhay/ytapp/releases) и переместите `YT_Deck.app` в папку «Программы» (`/Applications`).
+- **Linux**: Скачайте `YT_Deck-linux-x86_64.tar.gz` из [Releases](https://github.com/skaywhay/ytapp/releases), распакуйте и запустите исполняемый файл `./YT_Deck`.
 
-```powershell
+---
+
+## Ручная установка (Все платформы)
+
+```bash
 # 1. Создание и активация виртуального окружения
-python -m venv .venv
-.venv\Scripts\activate
+python3 -m venv .venv
+source .venv/bin/activate  # На Windows: .venv\Scripts\activate
 
 # 2. Установка зависимостей
 pip install -r requirements.txt
@@ -98,37 +112,54 @@ pip install -r requirements.txt
 # 3. Запуск десктопного приложения
 python server.py
 
-# Опционально: Запуск в режиме браузера
+# Опционально: Запуск в режиме веб-интерфейса для обычного браузера
 python server.py --browser
 ```
 
 ---
 
-## Сборка переносимого .EXE
+## Сборка исполняемых файлов
 
-Для сборки автономного исполняемого файла Windows:
-
+### Windows Portable .EXE
 ```cmd
 build_exe.bat
 ```
 
-Либо вручную через PyInstaller:
-
-```powershell
-python -m PyInstaller --clean -y yt_deck.spec
+### Windows Графический Инсталлятор (Setup)
+```cmd
+build_installer.bat
 ```
 
-Готовый файл будет сохранён в корневой папке проекта как `YT_Deck.exe`.
+### macOS Application Bundle (.app)
+```bash
+python3 -m PyInstaller --clean -y yt_deck.spec
+# Готовое приложение будет скомпилировано в dist/YT_Deck.app
+```
+
+### Linux Standalone Executable
+```bash
+python3 -m PyInstaller --clean -y yt_deck.spec
+# Исполняемый файл появится в dist/YT_Deck
+```
 
 ---
 
 ## Системные требования
 
-- **Операционная система**: Windows 10 / 11 (64-бит)
-- **Среда рендеринга**: Microsoft Edge WebView2 (предустановлен в Windows)
-- **Медиаутилиты**:
-  - `ffmpeg.exe` и `ffprobe.exe` в системном `PATH` либо рядом с исполняемым файлом.
-- **Python**: 3.10 или новее (при запуске из исходного кода).
+- **Windows**: Windows 10 / 11 (64-бит), Microsoft Edge WebView2.
+- **macOS**: macOS 11 Big Sur или новее.
+- **Linux**: Ubuntu 20.04+, Debian 11+, Fedora, Arch Linux с установленной библиотекой `libwebkit2gtk-4.1` (или `4.0`):
+  ```bash
+  # Debian / Ubuntu / Mint
+  sudo apt install libwebkit2gtk-4.1-dev ffmpeg
+
+  # Arch Linux / Manjaro
+  sudo pacman -S webkit2gtk ffmpeg
+
+  # Fedora
+  sudo dnf install webkit2gtk4.1 ffmpeg
+  ```
+- **FFmpeg**: Необходим на всех платформах для склейки видео и звука (`ffmpeg` в системном `PATH`).
 
 ---
 

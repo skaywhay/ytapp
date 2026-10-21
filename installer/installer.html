@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Установка YT Deck</title>
+  <link rel="stylesheet" href="installer.css">
+</head>
+<body class="theme-dark">
+  <div class="installer-shell">
+    <!-- Header with Branding -->
+    <header class="installer-header">
+      <div class="brand-logo">
+        <svg viewBox="0 0 48 48" width="36" height="36" fill="none">
+          <rect width="48" height="48" rx="12" fill="var(--md-primary)"/>
+          <path d="M16 14L36 24L16 34V14Z" fill="var(--md-on-primary)"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1 class="brand-title">YT Deck</h1>
+        <span class="brand-version">Версия 2.5.0</span>
+      </div>
+    </header>
+
+    <!-- Main Content Stage -->
+    <main class="installer-main">
+      
+      <!-- STEP 1: OPTIONS -->
+      <section id="step-options" class="installer-step active">
+        <div class="step-headline">
+          <h2>Установка приложения</h2>
+          <p class="step-desc">YT Deck — быстрый и современный загрузчик видео и аудио с YouTube.</p>
+        </div>
+
+        <div class="m3-card config-card">
+          <label class="field-label" for="target-path">Папка установки</label>
+          <div class="path-picker-row">
+            <input type="text" id="target-path" class="m3-input" spellcheck="false" autocomplete="off" />
+            <button type="button" id="browse-btn" class="m3-btn m3-btn--outlined">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span>Обзор...</span>
+            </button>
+          </div>
+          <span class="path-hint">Установка выполняется для текущего пользователя без необходимости прав администратора.</span>
+        </div>
+
+        <div class="options-group">
+          <label class="m3-checkbox-label">
+            <input type="checkbox" id="opt-desktop" checked />
+            <span class="m3-checkbox-custom"></span>
+            <span class="checkbox-text">Создать ярлык на рабочем столе</span>
+          </label>
+          <label class="m3-checkbox-label">
+            <input type="checkbox" id="opt-startmenu" checked />
+            <span class="m3-checkbox-custom"></span>
+            <span class="checkbox-text">Добавить в меню «Пуск» Windows</span>
+          </label>
+          <label class="m3-checkbox-label">
+            <input type="checkbox" id="opt-register" checked />
+            <span class="m3-checkbox-custom"></span>
+            <span class="checkbox-text">Зарегистрировать в списке установленных программ Windows</span>
+          </label>
+        </div>
+      </section>
+
+      <!-- STEP 2: INSTALLING / PROGRESS -->
+      <section id="step-progress" class="installer-step">
+        <div class="step-headline">
+          <h2>Идёт установка...</h2>
+          <p class="step-desc">Пожалуйста, подождите, пока необходимые файлы копируются в систему.</p>
+        </div>
+
+        <div class="progress-container">
+          <div class="m3-linear-progress">
+            <div id="progress-bar-fill" class="progress-fill" style="width: 0%;"></div>
+          </div>
+          <div class="progress-meta">
+            <span id="progress-status-text" class="status-text">Инициализация...</span>
+            <span id="progress-percent-text" class="percent-text">0%</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 3: FINISHED -->
+      <section id="step-finished" class="installer-step">
+        <div class="success-mark">
+          <svg viewBox="0 0 64 64" width="56" height="56" fill="none">
+            <circle cx="32" cy="32" r="30" stroke="var(--md-primary)" stroke-width="4"/>
+            <path d="M20 33L28 41L44 23" stroke="var(--md-primary)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="step-headline text-center">
+          <h2>Установка завершена!</h2>
+          <p class="step-desc">Приложение YT Deck готово к использованию.</p>
+        </div>
+
+        <div class="finish-options">
+          <label class="m3-checkbox-label center-label">
+            <input type="checkbox" id="opt-launch" checked />
+            <span class="m3-checkbox-custom"></span>
+            <span class="checkbox-text">Запустить YT Deck прямо сейчас</span>
+          </label>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer Action Buttons -->
+    <footer class="installer-footer">
+      <button type="button" id="cancel-btn" class="m3-btn m3-btn--text">Отмена</button>
+      <div class="footer-spacer"></div>
+      <button type="button" id="install-btn" class="m3-btn m3-btn--filled">
+        <span>Установить</span>
+      </button>
+      <button type="button" id="finish-btn" class="m3-btn m3-btn--filled" hidden>
+        <span>Завершить</span>
+      </button>
+    </footer>
+  </div>
+
+  <script src="installer.js"></script>
+</body>
+</html>

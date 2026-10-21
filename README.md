@@ -64,33 +64,47 @@ Unlike standard command-line wrappers or outdated GUI utilities, YT Deck deliver
 
 ## Quick Start
 
-### Option 1: Standalone Portable Executable (Recommended)
+### Windows
 
-1. Download the latest `YT_Deck.exe` from the Releases section.
-2. Ensure `ffmpeg.exe` is available in your system `PATH` or placed in the same folder as `YT_Deck.exe`.
-3. Launch `YT_Deck.exe`.
+#### Option 1: Modern Material Design 3 Installer (Recommended)
+1. Download `YT_Deck_Setup.exe` from [Releases](https://github.com/skaywhay/ytapp/releases).
+2. Run the installer to configure installation directory, desktop shortcut, start menu entry, and system registration.
+3. Launch YT Deck from Desktop or Start Menu.
 
-### Option 2: Automatic Setup Script
+#### Option 2: Portable Executable
+1. Download `YT_Deck-windows-portable.exe` from [Releases](https://github.com/skaywhay/ytapp/releases).
+2. Place `ffmpeg.exe` in the same directory or ensure it is installed in system `PATH`.
+3. Run the executable directly without installation.
 
-For development or running directly from source on Windows:
+---
 
+### macOS & Linux
+
+#### Running from Source (Quick Setup)
 1. Clone the repository:
-   ```cmd
+   ```bash
    git clone https://github.com/skaywhay/ytapp.git
    cd ytapp
    ```
-2. Run the startup script:
-   ```cmd
-   run.bat
+2. Make the startup script executable and run it:
+   ```bash
+   chmod +x run.sh
+   ./run.sh
    ```
-   The script automatically initializes a virtual environment (`.venv`), installs required dependencies from `requirements.txt`, and boots the application.
+   The script checks system dependencies, creates a virtual environment, installs packages, and launches the desktop app.
 
-### Option 3: Manual Installation
+#### Pre-built Binaries
+- **macOS**: Download `YT_Deck-macOS.zip` from [Releases](https://github.com/skaywhay/ytapp/releases), unpack `YT_Deck.app` into `/Applications`.
+- **Linux**: Download `YT_Deck-linux-x86_64.tar.gz` from [Releases](https://github.com/skaywhay/ytapp/releases), extract and run `./YT_Deck`.
 
-```powershell
+---
+
+## Manual Installation (All Platforms)
+
+```bash
 # 1. Create and activate a virtual environment
-python -m venv .venv
-.venv\Scripts\activate
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 # 2. Install dependencies
 pip install -r requirements.txt
@@ -104,31 +118,48 @@ python server.py --browser
 
 ---
 
-## Building Executable
+## Building Executables
 
-To compile a standalone, single-file Windows executable:
-
+### Windows Portable Executable
 ```cmd
 build_exe.bat
 ```
 
-Or invoke PyInstaller manually:
-
-```powershell
-python -m PyInstaller --clean -y yt_deck.spec
+### Windows Material Design 3 Installer
+```cmd
+build_installer.bat
 ```
 
-The compiled binary will be placed at the project root as `YT_Deck.exe`.
+### macOS Application Bundle
+```bash
+python3 -m PyInstaller --clean -y yt_deck.spec
+# Output will be generated in dist/YT_Deck.app
+```
+
+### Linux Standalone Executable
+```bash
+python3 -m PyInstaller --clean -y yt_deck.spec
+# Output will be generated in dist/YT_Deck
+```
 
 ---
 
 ## System Requirements
 
-- **Operating System**: Windows 10 / 11 (64-bit)
-- **Runtime**: Microsoft Edge WebView2 (pre-installed on modern Windows)
-- **Media Tools**:
-  - `ffmpeg.exe` and `ffprobe.exe` installed in system `PATH` or placed inside the application directory.
-- **Python**: 3.10 or newer (for source execution).
+- **Windows**: Windows 10 / 11 (64-bit), Microsoft Edge WebView2.
+- **macOS**: macOS 11 Big Sur or newer.
+- **Linux**: Ubuntu 20.04+, Debian 11+, Fedora, Arch Linux with `libwebkit2gtk-4.1` (or `4.0`) installed:
+  ```bash
+  # Debian / Ubuntu / Mint
+  sudo apt install libwebkit2gtk-4.1-dev ffmpeg
+
+  # Arch Linux / Manjaro
+  sudo pacman -S webkit2gtk ffmpeg
+
+  # Fedora
+  sudo dnf install webkit2gtk4.1 ffmpeg
+  ```
+- **FFmpeg**: Required on all platforms for merging video and audio streams (`ffmpeg` in `PATH`).
 
 ---
 
