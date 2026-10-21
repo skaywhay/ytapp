@@ -90,7 +90,7 @@ jobs:
       - name: Install system dependencies (WebKitGTK)
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libgirepository1.0-dev gir1.2-webkit2-4.1
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libgirepository1.0-dev gir1.2-webkit2-4.1 python3-gi python3-dev pkg-config libcairo2-dev
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -101,7 +101,7 @@ jobs:
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
-          pip install -r requirements.txt pyinstaller PyGObject
+          pip install -r requirements.txt pyinstaller
 
       - name: Build Linux Standalone Executable
         run: |
@@ -119,6 +119,7 @@ jobs:
   publish-release:
     name: Publish GitHub Release
     needs: [build-windows, build-macos, build-linux]
+    if: always() && !cancelled() && needs.build-windows.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -139,12 +140,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            release-assets/YT_Deck_Setup.exe
-            release-assets/YT_Deck-windows-portable.exe
-            release-assets/YT_Deck-macOS.zip
-            release-assets/YT_Deck-linux-x86_64.tar.gz
-            release-assets/SHA256SUMS.txt
+          files: release-assets/*
           generate_release_notes: true
           draft: false
           prerelease: false

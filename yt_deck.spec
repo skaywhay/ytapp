@@ -113,14 +113,14 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='icon.ico' if os.path.isfile('icon.ico') else None,
+    icon='icon.ico' if (sys.platform == 'win32' and os.path.isfile('icon.ico')) else None,
 )
 
 if sys.platform == 'darwin':
     app = BUNDLE(
         exe,
         name='YT_Deck.app',
-        icon='icon.ico' if os.path.isfile('icon.ico') else None,
+        icon=None,
         bundle_identifier='com.ytdeck.app',
         info_plist={
             'NSHighResolutionCapable': 'True',
