@@ -34,14 +34,33 @@ window.updateInstallerProgress = function(percent, statusMessage) {
 window.onInstallationFinished = function(success, errorMsg) {
   if (success) {
     showStep(stepFinished);
-    cancelBtn.hidden = true;
-    installBtn.hidden = true;
-    finishBtn.hidden = false;
+    if (cancelBtn) {
+      cancelBtn.hidden = true;
+      cancelBtn.style.display = 'none';
+    }
+    if (installBtn) {
+      installBtn.hidden = true;
+      installBtn.style.display = 'none';
+    }
+    if (finishBtn) {
+      finishBtn.hidden = false;
+      finishBtn.style.display = 'inline-flex';
+    }
   } else {
     alert('Ошибка при установке: ' + (errorMsg || 'Неизвестная ошибка'));
     showStep(stepOptions);
-    cancelBtn.disabled = false;
-    installBtn.disabled = false;
+    if (cancelBtn) {
+      cancelBtn.disabled = false;
+      cancelBtn.style.display = 'inline-flex';
+    }
+    if (installBtn) {
+      installBtn.disabled = false;
+      installBtn.style.display = 'inline-flex';
+    }
+    if (finishBtn) {
+      finishBtn.hidden = true;
+      finishBtn.style.display = 'none';
+    }
   }
 };
 
