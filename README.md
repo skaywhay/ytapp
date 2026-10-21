@@ -1,155 +1,162 @@
-# YT Deck 🚀
+# YT Deck
 
-[![Material Design 3](https://img.shields.io/badge/UI-Material%20Design%203%20Expressive-6750A4?style=flat-square&logo=materialdesign)](https://m3.material.io)
-[![Dynamic Color](https://img.shields.io/badge/Theming-Monet%20Engine-006A60?style=flat-square)](https://m3.material.io/styles/color/the-color-system/tokens)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20WebView2-0078D7?style=flat-square&logo=windows)](https://developer.microsoft.com/en-us/microsoft-edge/webview2/)
-[![Engine](https://img.shields.io/badge/Engine-yt--dlp%20%7C%20FFmpeg-FF0000?style=flat-square&logo=youtube)](https://github.com/yt-dlp/yt-dlp)
+<p align="center">
+  <strong>Modern desktop YouTube downloader powered by yt-dlp, FFmpeg, and Google Material Design 3.</strong>
+</p>
 
-**YT Deck** — современное настольное Windows-приложение нового поколения для комфортного скачивания и конвертации видео и аудио с YouTube с помощью связки **yt-dlp** и **FFmpeg**.
+<p align="center">
+  <a href="README.md">English</a> | <a href="README_RU.md">Русский</a>
+</p>
 
-Интерфейс спроектирован по строгим канонам дизайн-системы **Google Material Design 3 (M3 Expressive)** с поддержкой динамических палитр **Monet**, кастомных анимированных меню, умных статус-машин и плавающих уведомлений в стиле MargyT.
-
----
-
-## ✨ Ключевые возможности
-
-### 🎨 Material Design 3 & Динамический Monet Engine
-- **M3 Pill Navigation**: удобная навигационная панель с вкладками **«Загрузка»** и **«Настройки»** со скругленными индикаторами-пилюлями (M3 Pill Indicators).
-- **7 фирменных акцентных палитр Monet**:
-  - 🔴 **YouTube Crimson** (по умолчанию)
-  - 🟠 **Sunset Amber**
-  - 🔵 **Ocean Azure**
-  - 🟢 **Emerald Forest**
-  - 🟣 **Electric Violet**
-  - 🌸 **Sunset Rose**
-  - 🌊 **Mint & Teal**
-- **Умное переключение тем**:
-  - 🌙 **Тёмная тема** (M3 Dark Surface Containers с тональным возвышением).
-  - ☀️ **Светлая тема** (высококонтрастная чистая палитра по стандарту WCAG AA).
-  - ⚙️ **Системная тема** (автоматическая синхронизация с настройками Windows через `prefers-color-scheme`).
-- **Surface Elevation & Containers**: отказ от примитивных плоских заливок — используются тональные уровни поверхностей (`surface-container-low`, `high`, `highest`).
-
-### 🕹️ Умные интерактивные элементы и микровзаимодействия
-- **Probe Button State Machine**:
-  - Иконка поиска по умолчанию.
-  - Вращающийся спиннер активен **только** во время непосредственного считывания метаданных с YouTube.
-  - Анимированная зеленая галочка (`done`) при успешном анализе.
-  - Красный крестик (`close`) при ошибке соединения или неверной ссылке.
-  - Эффект горизонтального дрожания (shake) при попытке считывания из пустого поля ввода.
-- **Вставка из буфера обмена в 1 клик**: компактная кнопка рядом с инпутом мгновенно вставляет скопированную ссылку на видео.
-- **Кастомные M3 Dropdown Menus**:
-  - Замена архаичных стандартных селектов браузера на премиальные выпадающие списки с акриловым размытием фона (`backdrop-filter: blur`), плавной анимацией появления, галочкой активного элемента и бейджами-чипами качества/битрейта.
-- **Плавающие тосты MargyT (Floating Snackbars)**:
-  - Вместо громоздких статичных плашек ошибок — легкие парящие уведомления над интерфейсом с автоскрытием, иконками статуса и плавной кинематикой.
-
-### ⚙️ Выделенный центр управления (Настройки)
-- **Управление темами**: мгновенное переключение тем и цветовых акцентов без перезапуска приложения.
-- **Постоянная папка сохранения**: выбор и сохранение дефолтной директории для загрузок прямо в настройках с интеграцией нативного проводника Windows.
-- **Интеграция прокси**: настройка SOCKS5/HTTP-прокси для обхода блокировок и замедлений YouTube.
-
-### 🎬 Мощный медиадвижок
-- **Мгновенный парсинг доступных качеств**: видеопотоки до 4K/60fps с кодеками AV1/VP9/H.264 и аудиодорожки с указанием точного битрейта и примерного размера файла.
-- **Поддержка мультиязычных дубляжей (Multi-Audio)**: автоопределение всех дорожек (MrBeast, TED и др.) с автовыбором русского дубляжа или оригинального трека.
-- **3 режима скачивания**:
-  - **Видео + Звук** (склейка в `MP4`, `MKV`, `WEBM`).
-  - **Только видео** (для видеомонтажа и b-roll).
-  - **Только аудио** (извлечение в `MP3`, `M4A`, `OPUS`, `WAV`).
-- **Живой мониторинг загрузки через Socket.IO**: отображение процента, скорости, переданного объема данных и фазы склейки FFmpeg в реальном времени.
-- **Нативный проводник Windows**: открытие папки с готовым файлом в один клик.
+<p align="center">
+  <a href="https://m3.material.io"><img src="https://img.shields.io/badge/UI-Material%20Design%203-6750A4?style=flat-square" alt="Material Design 3"></a>
+  <a href="https://m3.material.io/styles/color/the-color-system/tokens"><img src="https://img.shields.io/badge/Theming-Monet%20Palette%20Engine-006A60?style=flat-square" alt="Monet Palette"></a>
+  <a href="https://developer.microsoft.com/en-us/microsoft-edge/webview2/"><img src="https://img.shields.io/badge/Platform-Windows%20WebView2-0078D7?style=flat-square" alt="Windows WebView2"></a>
+  <a href="https://github.com/yt-dlp/yt-dlp"><img src="https://img.shields.io/badge/Core-yt--dlp%20%7C%20FFmpeg-FF0000?style=flat-square" alt="yt-dlp FFmpeg"></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square" alt="Python"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT%20%2F%20Personal-blue?style=flat-square" alt="License"></a>
+</p>
 
 ---
 
-## 🚀 Быстрый запуск
+## Overview
 
-### Вариант 1. Автономный .EXE (Рекомендуется)
+**YT Deck** is a lightweight, responsive Windows desktop application for downloading and processing YouTube media streams. It combines the power of **yt-dlp** and **FFmpeg** with a desktop interface built around **Google Material Design 3 (M3 Expressive)** and the **Monet dynamic color engine**.
 
-Просто запустите файл:
-👉 **`YT_Deck.exe`** в корневой папке проекта.
-
-> Приложение работает в нативном окне Windows WebView2 без консолей командной строки и фонового шума.
+Unlike standard command-line wrappers or outdated GUI utilities, YT Deck delivers a smooth native desktop experience via Microsoft Edge WebView2, supporting multi-language audio dubs, up to 4K/8K IMAX resolutions, automatic timecode trimming, queue management, and modern network resilience with Chrome TLS fingerprint impersonation.
 
 ---
 
-### Вариант 2. Запуск через скрипт `run.bat`
+## Features
 
-Для разработчиков и запуска из исходников:
-1. Запустите файл **`run.bat`**.
-2. Скрипт проверит окружение, создаст `.venv`, подтянет зависимости и откроет приложение.
+### Material Design 3 & Monet Engine
+- **M3 Navigation Rail / Tabs**: Seamless switching between the primary Deck workspace, Queue Manager, and Settings view.
+- **7 Dynamic Monet Accent Palettes**: YouTube Crimson, Sunset Amber, Ocean Azure, Emerald Forest, Electric Violet, Sunset Rose, and Mint Teal.
+- **System Theme Synchronization**: Dynamic switching between Dark, Light, and System modes with WCAG AA compliant contrast ratios and tonal surface elevation.
+- **Custom Blur Dropdowns**: Hardware-accelerated acrylic dropdown selectors with custom badge metadata indicators.
+
+### Download & Media Engine
+- **Accurate Stream Selection**: Real-time resolution detection supporting standard (1080p, 720p), ultrawide, and cinematic IMAX aspect ratios (3840x2024 4K, 7680x4048 8K, AV1, VP9, H.264).
+- **Multi-Track Audio Dubs**: Automatic detection and extraction of alternate language dub tracks (e.g., multi-language creator tracks) with auto-preference settings.
+- **Three Core Modes**:
+  - **Video + Audio**: Merged container output (`MP4`, `MKV`, `WEBM`).
+  - **Video Only**: Direct video stream extraction for editing and B-roll.
+  - **Audio Only**: High-fidelity sound extraction (`MP3`, `M4A`, `OPUS`, `FLAC`, `WAV`).
+- **Timecode Trimming**: Local lossless trimming with sub-second precision via FFmpeg post-processing.
+- **Playlist Management**: Batch URL ingestion with range limits and individual format overrides.
+
+### Network Performance & Anti-Throttling
+- **Chrome TLS Impersonation**: Built-in `curl_cffi` client fingerprint matching to eliminate ISP connection drops, handshake timeouts, and CDN speed throttling.
+- **QuickJS Challenge Solver**: Bundled QuickJS interpreter (`bin/qjs.exe`) for automated YouTube player challenge solving without stalls.
+- **Dual-State Realtime Feedback**: WebSocket event stream supplemented by a background polling mechanism ensuring uninterrupted progress and bandwidth reporting.
 
 ---
 
-### Вариант 3. Ручной запуск из терминала
+## Tech Stack
+
+- **Backend**: Python 3.10+, Flask, Flask-SocketIO, Simple-WebSocket
+- **Engine**: yt-dlp, FFmpeg, curl-cffi, QuickJS
+- **Frontend**: Vanilla JavaScript (ES6+), Modern CSS3 Tokens, Material Design 3 Expressive
+- **Desktop Runtime**: PyWebView (Microsoft Edge WebView2)
+- **Packaging**: PyInstaller
+
+---
+
+## Quick Start
+
+### Option 1: Standalone Portable Executable (Recommended)
+
+1. Download the latest `YT_Deck.exe` from the Releases section.
+2. Ensure `ffmpeg.exe` is available in your system `PATH` or placed in the same folder as `YT_Deck.exe`.
+3. Launch `YT_Deck.exe`.
+
+### Option 2: Automatic Setup Script
+
+For development or running directly from source on Windows:
+
+1. Clone the repository:
+   ```cmd
+   git clone https://github.com/skaywhay/ytapp.git
+   cd ytapp
+   ```
+2. Run the startup script:
+   ```cmd
+   run.bat
+   ```
+   The script automatically initializes a virtual environment (`.venv`), installs required dependencies from `requirements.txt`, and boots the application.
+
+### Option 3: Manual Installation
 
 ```powershell
-# 1. Создание и активация виртуального окружения
+# 1. Create and activate a virtual environment
 python -m venv .venv
 .venv\Scripts\activate
 
-# 2. Установка зависимостей
+# 2. Install dependencies
 pip install -r requirements.txt
 
-# 3. Запуск десктопного приложения
+# 3. Start desktop application
 python server.py
 
-# (Опционально) Запуск в режиме веб-сервера для обычного браузера:
+# Optional: Run as browser web-service
 python server.py --browser
 ```
 
 ---
 
-## 🛠 Сборка переносимого .EXE
+## Building Executable
 
-Для компиляции автономного дистрибутива запустите:
+To compile a standalone, single-file Windows executable:
+
 ```cmd
 build_exe.bat
 ```
-Либо вручную через PyInstaller:
+
+Or invoke PyInstaller manually:
+
 ```powershell
 python -m PyInstaller --clean -y yt_deck.spec
 ```
-Готовый исполняемый файл **`YT_Deck.exe`** появится прямо в корне проекта.
+
+The compiled binary will be placed at the project root as `YT_Deck.exe`.
 
 ---
 
-## 🔧 Зависимости и требования
+## System Requirements
 
-- **ОС**: Windows 10 / 11 (64-bit).
-- **Microsoft Edge WebView2**: обычно уже предустановлен в современных версиях Windows.
-- **FFmpeg**:
-  - Рекомендуется добавить `ffmpeg` в системную переменную `PATH`, **или**
-  - Просто положить `ffmpeg.exe` в папку с программой `YT_Deck.exe`.
-- **yt-dlp**: регулярно обновляйте модуль выгрузки при изменении протоколов YouTube:
-  ```powershell
-  pip install --upgrade yt-dlp
-  ```
+- **Operating System**: Windows 10 / 11 (64-bit)
+- **Runtime**: Microsoft Edge WebView2 (pre-installed on modern Windows)
+- **Media Tools**:
+  - `ffmpeg.exe` and `ffprobe.exe` installed in system `PATH` or placed inside the application directory.
+- **Python**: 3.10 or newer (for source execution).
 
 ---
 
-## 📂 Архитектура и структура проекта
+## Project Structure
 
 ```text
 ytapp/
-├── server.py               # Точка входа: запуск веб-сервера / окна WebView2
-├── api/                    # Модули API-эндпоинтов (/api/probe, /api/download) и WebSocket
-├── core/                   # Ядро: конфигурация, движок yt-dlp, многопоточная очередь
-├── services/               # Вспомогательные сервисы (обрезка таймкодов, автоапдейтер)
-├── picker.py               # Нативный проводник Windows для выбора папки
-├── icon.ico                # Иконка приложения
-├── yt_deck.spec            # Спецификация сборки в PyInstaller
-├── build_exe.bat           # Сборка .exe в один клик
-├── run.bat                 # Быстрый запуск в dev-режиме с автосозданием venv
-├── requirements.txt        # Python-зависимости
+├── server.py               # Application entry point: WebView2 / Flask server
+├── api/                    # REST endpoints (/api/probe, /api/download) & Socket.IO handlers
+├── core/                   # Engine abstraction, configuration, queue dispatcher
+├── services/               # Background services (media trimming, updater)
+├── picker.py               # Native Windows directory selection bridge
+├── icon.ico                # Application icon
+├── yt_deck.spec            # PyInstaller build specification
+├── build_exe.bat           # Automated single-click build script
+├── run.bat                 # Development auto-setup and launch script
+├── requirements.txt        # Python dependency manifest
 ├── templates/
-│   └── index.html          # Семантическая разметка (Material Design 3)
+│   └── index.html          # Semantic Material Design 3 user interface
 └── static/
     ├── css/
-    │   └── style.css       # M3 токены, Monet палитры, адаптивные стили
+    │   └── style.css       # M3 design tokens, Monet color schemes, responsive layout
     └── js/
-        └── app.js          # Логика клиента (Monet Engine, сокеты, прогресс-бары)
+        └── app.js          # Client controller, Socket.IO listeners, Monet engine
 ```
 
 ---
 
-## 📄 Лицензия
+## License & Disclaimer
 
-Распространяется свободно для личного и некоммерческого использования. Все права на скачиваемый контент принадлежат их правообладателям.
+Distributed freely for personal and educational use. This software is an interface utility for `yt-dlp` and `ffmpeg`. All copyrights and intellectual property regarding downloaded content belong to their respective creators and copyright owners.
