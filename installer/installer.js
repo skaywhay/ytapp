@@ -6,6 +6,14 @@ const optStartmenu = document.getElementById('opt-startmenu');
 const optRegister = document.getElementById('opt-register');
 const optLaunch = document.getElementById('opt-launch');
 
+const existingInstallBanner = document.getElementById('existing-install-banner');
+const existingBannerDesc = document.getElementById('existing-banner-desc');
+const stepOptionsTitle = document.getElementById('step-options-title');
+const stepOptionsDesc = document.getElementById('step-options-desc');
+const installBtnText = document.getElementById('install-btn-text');
+
+let isReinstall = false;
+
 const stepOptions = document.getElementById('step-options');
 const stepProgress = document.getElementById('step-progress');
 const stepFinished = document.getElementById('step-finished');
@@ -34,6 +42,12 @@ window.updateInstallerProgress = function(percent, statusMessage) {
 window.onInstallationFinished = function(success, errorMsg) {
   if (success) {
     showStep(stepFinished);
+    if (isReinstall) {
+      const finishTitle = document.querySelector('#step-finished h2');
+      if (finishTitle) finishTitle.textContent = 'Переустановка завершена!';
+      const finishDesc = document.querySelector('#step-finished .step-desc');
+      if (finishDesc) finishDesc.textContent = 'Приложение YT Deck успешно обновлено и готово к работе.';
+    }
     if (cancelBtn) {
       cancelBtn.hidden = true;
       cancelBtn.style.display = 'none';
@@ -66,12 +80,29 @@ window.onInstallationFinished = function(success, errorMsg) {
 
 window.addEventListener('pywebviewready', async () => {
   try {
+    const existing = await window.pywebview.api.check_existing();
     const defaultPath = await window.pywebview.api.get_default_target_dir();
-    if (defaultPath && targetPathInput) {
-      targetPathInput.value = defaultPath;
+
+    if (existing && existing.found) {
+      isReinstall = true;
+      if (targetPathInput) targetPathInput.value = existing.path || defaultPath;
+      if (existingInstallBanner) {
+        existingInstallBanner.hidden = false;
+        existingInstallBanner.style.display = 'flex';
+      }
+      if (existingBannerDesc && existing.path) {
+        existingBannerDesc.textContent = `Обнаружена установленная копия (версия ${existing.version || '2.5.0'}) в папке: ${existing.path}. Нажмите «Переустановить» для обновления файлов.`;
+      }
+      if (stepOptionsTitle) stepOptionsTitle.textContent = 'Переустановка или обновление';
+      if (stepOptionsDesc) stepOptionsDesc.textContent = 'Приложение уже установлено в системе. Вы можете выполнить обновление или чистую переустановку.';
+      if (installBtnText) installBtnText.textContent = 'Переустановить';
+    } else {
+      if (defaultPath && targetPathInput) {
+        targetPathInput.value = defaultPath;
+      }
     }
   } catch (err) {
-    console.error('Failed to get default path:', err);
+    console.error('Failed to initialize installer data:', err);
   }
 });
 

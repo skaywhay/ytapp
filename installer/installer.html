@@ -27,9 +27,24 @@
       
       <!-- STEP 1: OPTIONS -->
       <section id="step-options" class="installer-step active">
+        <!-- Existing installation banner (shown only if previous install detected) -->
+        <div id="existing-install-banner" class="m3-card existing-banner" style="display: none;" hidden>
+          <div class="existing-banner-icon">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+          </div>
+          <div class="existing-banner-text">
+            <span class="existing-banner-title">Обнаружена установленная копия программы</span>
+            <span id="existing-banner-desc" class="existing-banner-desc">Приложение уже установлено в этой системе. Вы можете выполнить чистую переустановку или обновление.</span>
+          </div>
+        </div>
+
         <div class="step-headline">
-          <h2>Установка приложения</h2>
-          <p class="step-desc">YT Deck — быстрый и современный загрузчик видео и аудио с YouTube.</p>
+          <h2 id="step-options-title">Установка приложения</h2>
+          <p id="step-options-desc" class="step-desc">YT Deck — быстрый и современный загрузчик видео и аудио с YouTube.</p>
         </div>
 
         <div class="m3-card config-card">
@@ -112,7 +127,7 @@
       <button type="button" id="cancel-btn" class="m3-btn m3-btn--text">Отмена</button>
       <div class="footer-spacer"></div>
       <button type="button" id="install-btn" class="m3-btn m3-btn--filled">
-        <span>Установить</span>
+        <span id="install-btn-text">Установить</span>
       </button>
       <button type="button" id="finish-btn" class="m3-btn m3-btn--filled" style="display: none;" hidden>
         <span>Завершить</span>

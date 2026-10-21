@@ -27,6 +27,37 @@ def get_default_target_dir():
     return os.path.join(localapp, "Programs", "YT-Deck")
 
 
+def scan_existing_installation():
+    """
+    Scans the system for an existing YT Deck installation via Windows Registry and standard locations.
+    Returns metadata dict: {'found': bool, 'path': str, 'version': str}.
+    """
+    info = {"found": False, "path": "", "version": "2.5.0"}
+    if sys.platform == "win32":
+        try:
+            import winreg
+            key_path = r"Software\Microsoft\Windows\CurrentVersion\Uninstall\YT-Deck"
+            with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path) as key:
+                loc, _ = winreg.QueryValueEx(key, "InstallLocation")
+                ver, _ = winreg.QueryValueEx(key, "DisplayVersion")
+                if loc and (os.path.isdir(loc) or os.path.isfile(os.path.join(loc, "YT_Deck.exe"))):
+                    info["found"] = True
+                    info["path"] = os.path.normpath(loc)
+                    if ver:
+                        info["version"] = str(ver)
+                    return info
+        except Exception:
+            pass
+
+    default_dir = get_default_target_dir()
+    if os.path.isfile(os.path.join(default_dir, "YT_Deck.exe")):
+        info["found"] = True
+        info["path"] = os.path.normpath(default_dir)
+        return info
+
+    return info
+
+
 def create_windows_shortcut(target_exe, shortcut_path, icon_path=None, description="YT Deck"):
     """
     Creates a valid Windows .lnk shortcut using standard WScript.Shell via PowerShell.
@@ -88,6 +119,9 @@ class InstallerApi:
         self.window_holder = window_holder
         self.installed_exe_path = ""
 
+    def check_existing(self):
+        return scan_existing_installation()
+
     def get_default_target_dir(self):
         return get_default_target_dir()
 
@@ -132,11 +166,25 @@ class InstallerApi:
 
     def _run_install_worker(self, target_dir, create_desktop, create_startmenu, register_app):
         try:
-            self._set_progress(10, "Подготовка директории установки...")
-            os.makedirs(target_dir, exist_ok=True)
-            time.sleep(0.3)
+            # Terminate existing running YT_Deck processes to avoid WinError 5 lock
+            if sys.platform == "win32":
+                self._set_progress(5, "Остановка активных процессов YT Deck...")
+                try:
+                    subprocess.run(
+                        ["taskkill", "/f", "/im", "YT_Deck.exe"],
+                        capture_output=True,
+                        timeout=5,
+                        creationflags=subprocess.CREATE_NO_WINDOW
+                    )
+                except Exception:
+                    pass
+                time.sleep(0.3)
 
-            self._set_progress(25, "Копирование исполняемых компонентов...")
+            self._set_progress(15, "Подготовка директории установки...")
+            os.makedirs(target_dir, exist_ok=True)
+            time.sleep(0.2)
+
+            self._set_progress(30, "Копирование исполняемых компонентов...")
             # Locate payload YT_Deck.exe
             exe_source = None
             candidates = [
