@@ -9,9 +9,10 @@ datas = [
     ('templates', 'templates'),
     ('static', 'static'),
     ('icon.ico', '.'),
+    ('bin/qjs.exe', 'bin'),
 ]
 
-for pkg in ['yt_dlp', 'webview', 'clr_loader', 'pythonnet']:
+for pkg in ['yt_dlp', 'webview', 'clr_loader', 'pythonnet', 'curl_cffi']:
     try:
         datas += collect_data_files(pkg)
     except Exception:
@@ -21,6 +22,7 @@ hiddenimports = [
     'engineio.async_drivers.threading',
     'simple_websocket',
     'yt_dlp',
+    'curl_cffi',
     'picker',
     'wsproto',
     'werkzeug',
@@ -31,9 +33,19 @@ hiddenimports = [
     'webview',
     'webview.platforms.winforms',
     'webview.platforms.edgechromium',
+    'core',
+    'core.config',
+    'core.engine',
+    'core.queue_manager',
+    'api',
+    'api.routes',
+    'api.sockets',
+    'services',
+    'services.media_trim',
+    'services.updater',
 ]
 
-for pkg in ['yt_dlp.extractor', 'webview']:
+for pkg in ['yt_dlp.extractor', 'webview', 'core', 'api', 'services', 'curl_cffi']:
     try:
         hiddenimports += collect_submodules(pkg)
     except Exception:

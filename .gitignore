@@ -1,17 +1,56 @@
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+*.pyd
+
+# Virtual Environments
 .venv/
 venv/
+env/
 ENV/
+env.bak/
+venv.bak/
 
-# Node
-frontend/node_modules/
-frontend/.cache/
-frontend/dist/
-
-# OS
-# PyInstaller temporary build artifacts
+# Binaries & Executables
+*.exe
+YT_Deck.exe
+dist/
 build/
+bin/
 *.spec.bak
 
+# App runtime & downloaded media files
+data/
+temp_cookies/
+*.mp4
+*.webm
+*.mkv
+*.mp3
+*.m4a
+*.wav
+*.flac
+*.opus
+*.ogg
+*.part
+*.ytdl
+*.temp
+queue.json
+config.json
+
+# Node & Web
+node_modules/
+.cache/
+
+# Logs
+*.log
+
+# IDE & OS files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini

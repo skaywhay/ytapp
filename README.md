@@ -129,22 +129,23 @@ python -m PyInstaller --clean -y yt_deck.spec
 
 ```text
 ytapp/
-├── YT_Deck.exe             # Автономный скомпилированный бинарник Windows (WebView2)
-├── server.py               # Бэкенд: Flask + Socket.IO + yt-dlp API + PyWebView запуск
-├── picker.py               # Модуль нативного диалога выбора папок Windows (IFileDialog/Tk)
-├── icon.ico                # Многослойная иконка приложения в стиле M3
-├── yt_deck.spec            # Спецификация сборки PyInstaller (windowed mode, data bundle)
-├── build_exe.bat           # Скрипт сборки автономного .exe в один клик
-├── run.bat                 # Скрипт автоустановки и быстрого запуска для разработчиков
-├── requirements.txt        # Список зависимостей Python
+├── server.py               # Точка входа: запуск веб-сервера / окна WebView2
+├── api/                    # Модули API-эндпоинтов (/api/probe, /api/download) и WebSocket
+├── core/                   # Ядро: конфигурация, движок yt-dlp, многопоточная очередь
+├── services/               # Вспомогательные сервисы (обрезка таймкодов, автоапдейтер)
+├── picker.py               # Нативный проводник Windows для выбора папки
+├── icon.ico                # Иконка приложения
+├── yt_deck.spec            # Спецификация сборки в PyInstaller
+├── build_exe.bat           # Сборка .exe в один клик
+├── run.bat                 # Быстрый запуск в dev-режиме с автосозданием venv
+├── requirements.txt        # Python-зависимости
 ├── templates/
-│   └── index.html          # Семантическая разметка (M3 Navigation, Deck & Settings tabs)
-├── static/
-│   ├── css/
-│   │   └── style.css       # Дизайн-токены M3 Expressive, палитры Monet, кастомные дропдауны
-│   └── js/
-│       └── app.js          # Логика клиента (Monet Theme Engine, State Machine, Socket.IO, Toasts)
-└── README.md               # Документация проекта
+│   └── index.html          # Семантическая разметка (Material Design 3)
+└── static/
+    ├── css/
+    │   └── style.css       # M3 токены, Monet палитры, адаптивные стили
+    └── js/
+        └── app.js          # Логика клиента (Monet Engine, сокеты, прогресс-бары)
 ```
 
 ---

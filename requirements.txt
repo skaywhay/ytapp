@@ -3,3 +3,4 @@ flask-socketio>=5.3
 simple-websocket>=1.0
 yt-dlp>=2024.8.6
 pywebview>=5.0
+curl-cffi>=0.7.0
