@@ -2845,3 +2845,240 @@ handleUrlInputChange();
 
 // Initial fetch of Queue on application start
 fetchQueue();
+
+// ==========================================
+// 16. PREVIEW CONTROLLER (Documentation & Showcase)
+// ==========================================
+
+function initPreviewMode() {
+  const params = new URLSearchParams(window.location.search);
+  const preview = params.get('preview');
+  if (!preview) return;
+  try {
+
+  const sampleThumb = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#14141e"/>
+      <stop offset="50%" stop-color="#1e1e2d"/>
+      <stop offset="100%" stop-color="#2a1b2d"/>
+    </linearGradient>
+    <linearGradient id="aurora" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ba1a1a" stop-opacity="0.85"/>
+      <stop offset="50%" stop-color="#7c3aed" stop-opacity="0.65"/>
+      <stop offset="100%" stop-color="#0284c7" stop-opacity="0.75"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" fill="url(#bgGrad)"/>
+  <circle cx="320" cy="180" r="140" fill="url(#aurora)" filter="blur(20px)"/>
+  <path d="M 0 240 Q 180 180 340 220 T 640 180 L 640 360 L 0 360 Z" fill="#0f0f15" opacity="0.9"/>
+  <polygon points="295,150 365,180 295,210" fill="#ffffff" opacity="0.95"/>
+  <rect x="24" y="24" width="92" height="28" rx="6" fill="#ba1a1a"/>
+  <text x="70" y="43" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-weight="700" font-size="13" text-anchor="middle">4K 60FPS</text>
+  <rect x="124" y="24" width="56" height="28" rx="6" fill="rgba(255,255,255,0.15)"/>
+  <text x="152" y="43" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif" font-weight="700" font-size="13" text-anchor="middle">HDR</text>
+</svg>
+`);
+
+  if (preview === 'hero' || preview === 'trim') {
+    applyThemeMode('dark', false);
+    applyMonetPalette('crimson', false);
+
+    // Cancel debounce probe
+    if (urlDebounceTimer) {
+      clearTimeout(urlDebounceTimer);
+      urlDebounceTimer = null;
+    }
+    probe = async () => {};
+
+    if (urlInput) {
+      urlInput.value = 'https://www.youtube.com/watch?v=WCtJ_EZQQBM';
+      lastProbedUrl = urlInput.value;
+      if (clearUrlBtn) clearUrlBtn.hidden = false;
+      if (urlSupportingError) urlSupportingError.hidden = true;
+    }
+
+    currentUrl = 'https://www.youtube.com/watch?v=WCtJ_EZQQBM';
+    currentTitle = 'Costa Rica in 4K 60fps HDR (Ultra HD)';
+    currentUploader = 'Jacob + Katie Schwarz';
+    currentThumbnailUrl = sampleThumb;
+    currentDuration = '05:14';
+    currentDurationSec = 314;
+    currentEstimatedSize = 1488977920;
+
+    setProbeBtnState('success', 'Найдено!');
+
+    if (trackThumb) trackThumb.src = sampleThumb;
+    if (trackTitle) trackTitle.textContent = currentTitle;
+    if (trackUploader) trackUploader.textContent = currentUploader;
+    if (trackDuration) trackDuration.textContent = currentDuration;
+    if (trackViews) {
+      trackViews.textContent = '112 450 000 просмотров';
+      trackViews.hidden = false;
+    }
+    if (trackDate) {
+      trackDate.textContent = '14 окт. 2023 г.';
+      trackDate.hidden = false;
+    }
+
+    if (skeletonCard) skeletonCard.hidden = true;
+    if (emptyStateSection) emptyStateSection.hidden = true;
+    if (extraOptionsSlot) extraOptionsSlot.hidden = false;
+    if (transferSection) transferSection.hidden = false;
+
+    if (preview === 'hero') {
+      if (trackCard) trackCard.hidden = false;
+      if (modeSlot) modeSlot.hidden = false;
+      if (simpleQualityCard) simpleQualityCard.hidden = false;
+    } else {
+      if (trackCard) trackCard.hidden = true;
+      if (modeSlot) modeSlot.hidden = true;
+      if (simpleQualityCard) simpleQualityCard.hidden = true;
+    }
+
+    // Fill Video Formats
+    const mockVideoFormats = [
+      { format_id: '313', label: '3840x2160 (4K 60fps HDR) · VP9', height: 2160, width: 3840, size_h: '1.42 GB', ext: 'webm' },
+      { format_id: '271', label: '2560x1440 (2K 60fps) · VP9', height: 1440, width: 2560, size_h: '820 MB', ext: 'webm' },
+      { format_id: '137', label: '1920x1080 (1080p 60fps) · H.264', height: 1080, width: 1920, size_h: '410 MB', ext: 'mp4' },
+      { format_id: '136', label: '1280x720 (720p 60fps) · H.264', height: 720, width: 1280, size_h: '185 MB', ext: 'mp4' }
+    ];
+    lastProbedVideoFormats = mockVideoFormats;
+    fillSelect(videoSelect, mockVideoFormats, (f) => `${f.label}${f.size_h ? ' · ' + f.size_h : ''}`);
+
+    // Fill Audio Tracks
+    availableAudioTracks = [
+      { title: 'English (Original Audio)', formats: [{ format_id: '251', label: 'Opus 160 kbps', size_h: '6.2 MB' }] },
+      { title: 'Русский (Полный дубляж)', formats: [{ format_id: '251-ru', label: 'Opus 160 kbps', size_h: '6.1 MB' }] },
+      { title: 'Español (Doblaje oficial)', formats: [{ format_id: '251-es', label: 'Opus 160 kbps', size_h: '6.0 MB' }] }
+    ];
+    if (audioTrackWrap) audioTrackWrap.hidden = false;
+    if (audioTrackBadge) audioTrackBadge.textContent = '3 дубляжа';
+    if (audioTrackSelect) {
+      audioTrackSelect.innerHTML = '';
+      availableAudioTracks.forEach((t, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = t.title;
+        audioTrackSelect.appendChild(opt);
+      });
+      updateCustomDropdown(audioTrackSelect);
+    }
+
+    fillSelect(audioSelect, [{ format_id: '251', label: 'Opus 160 kbps (Высокое качество)', size_h: '6.2 MB' }], (f) => `${f.label} · ${f.size_h}`);
+
+    updateSimpleQualityDropdown('both');
+
+    if (preview === 'trim') {
+      if (trackCard) trackCard.hidden = true;
+      if (modeSlot) modeSlot.hidden = true;
+      if (simpleQualityCard) simpleQualityCard.hidden = true;
+
+      const trimCheckbox = $('trim-enabled');
+      const trimBody = $('trim-body');
+      if (trimCheckbox) trimCheckbox.checked = true;
+      if (trimBody) trimBody.classList.remove('disabled');
+      initTrimSlider(314);
+      if (trimRangeStart) trimRangeStart.value = 45;
+      if (trimRangeEnd) trimRangeEnd.value = 185;
+      if (trimStartInput) trimStartInput.value = '00:00:45';
+      if (trimEndInput) trimEndInput.value = '00:03:05';
+      updateTrimSliderUI();
+    }
+  } else if (preview === 'queue') {
+    applyThemeMode('dark', false);
+    applyMonetPalette('crimson', false);
+    switchTab('queue');
+    fetchQueue = async () => {};
+
+    const mockData = {
+      settings: { mode: 'parallel', strategy: 'fifo', speed_limit_mb: 0 },
+      stats: { total: 4, active: 1, pending: 1, done: 2 },
+      items: [
+        {
+          id: 'preview-1',
+          title: 'Interstellar — Docking Scene in IMAX 4K 60fps HDR',
+          uploader: 'Paramount Pictures',
+          status: 'downloading',
+          progress: 68,
+          speed: '54.8 MB/s',
+          downloaded: '1.42 GB',
+          total: '2.10 GB',
+          eta: '00:13',
+          mode: 'both',
+          container: 'mp4',
+          duration: '04:18',
+          filename: 'Interstellar_Docking_Scene_4K.mp4',
+          priority: 'high',
+          thumbnail: sampleThumb
+        },
+        {
+          id: 'preview-2',
+          title: 'Hans Zimmer — Live in Prague (FLAC 24-bit Lossless Audio)',
+          uploader: 'Hans Zimmer Official',
+          status: 'merging',
+          progress: 99,
+          speed: '',
+          downloaded: '',
+          total: '',
+          eta: '',
+          stage_text: 'Сведение через FFmpeg...',
+          mode: 'audio',
+          audio_codec: 'flac',
+          duration: '07:22',
+          filename: 'Hans_Zimmer_Live_Prague.flac',
+          priority: 'normal',
+          thumbnail: sampleThumb
+        },
+        {
+          id: 'preview-3',
+          title: 'Cyberpunk 2077: Phantom Liberty — Official Cinematic Trailer 8K',
+          uploader: 'CD PROJEKT RED',
+          status: 'done',
+          progress: 100,
+          speed: '',
+          downloaded: '3.42 GB',
+          total: '3.42 GB',
+          eta: '',
+          mode: 'both',
+          container: 'mp4',
+          duration: '03:45',
+          filename: 'Cyberpunk_Phantom_Liberty_8K.mp4',
+          priority: 'normal',
+          thumbnail: sampleThumb
+        },
+        {
+          id: 'preview-4',
+          title: 'BBC Earth — Frozen Planet II: High Arctic Aerial View',
+          uploader: 'BBC Earth',
+          status: 'pending',
+          progress: 0,
+          speed: '',
+          downloaded: '',
+          total: '4.80 GB',
+          eta: '',
+          mode: 'both',
+          container: 'mkv',
+          duration: '09:12',
+          filename: 'Frozen_Planet_II_High_Arctic.mkv',
+          priority: 'low',
+          thumbnail: sampleThumb
+        }
+      ]
+    };
+
+    renderQueue(mockData);
+    setTimeout(() => renderQueue(mockData), 200);
+    setTimeout(() => renderQueue(mockData), 600);
+  } else if (preview === 'settings') {
+    applyThemeMode('dark', false);
+    applyMonetPalette('crimson', false);
+    switchTab('settings');
+  }
+  } catch (err) {
+    console.warn('Preview mode initialization error:', err);
+  }
+}
+
+initPreviewMode();

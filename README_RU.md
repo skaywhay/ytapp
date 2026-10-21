@@ -9,12 +9,18 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/skaywhay/ytapp/releases"><img src="https://img.shields.io/github/v/release/skaywhay/ytapp?style=flat-square&label=%D0%A0%D0%B5%D0%BB%D0%B8%D0%B7" alt="Версия релиза"></a>
+  <a href="https://github.com/skaywhay/ytapp/releases"><img src="https://img.shields.io/github/downloads/skaywhay/ytapp/total?style=flat-square&label=%D0%A1%D0%BA%D0%B0%D1%87%D0%B8%D0%B2%D0%B0%D0%BD%D0%B8%D1%8F" alt="Скачивания"></a>
+  <a href="https://github.com/skaywhay/ytapp/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/skaywhay/ytapp/release.yml?branch=main&style=flat-square&label=%D0%A1%D0%B1%D0%BE%D1%80%D0%BA%D0%B0" alt="Статус CI"></a>
   <a href="https://m3.material.io"><img src="https://img.shields.io/badge/UI-Material%20Design%203-6750A4?style=flat-square" alt="Material Design 3"></a>
   <a href="https://m3.material.io/styles/color/the-color-system/tokens"><img src="https://img.shields.io/badge/Theming-Monet%20Palette%20Engine-006A60?style=flat-square" alt="Monet Palette"></a>
-  <a href="https://developer.microsoft.com/en-us/microsoft-edge/webview2/"><img src="https://img.shields.io/badge/Platform-Windows%20WebView2-0078D7?style=flat-square" alt="Windows WebView2"></a>
   <a href="https://github.com/yt-dlp/yt-dlp"><img src="https://img.shields.io/badge/Core-yt--dlp%20%7C%20FFmpeg-FF0000?style=flat-square" alt="yt-dlp FFmpeg"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square" alt="Python"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT%20%2F%20Personal-blue?style=flat-square" alt="License"></a>
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/hero_preview.png" alt="Интерфейс YT Deck (Material Design 3 Expressive, палитра YouTube Crimson)" width="950">
 </p>
 
 ---
@@ -24,6 +30,44 @@
 **YT Deck** — быстрое и отзывчивое Windows-приложение для скачивания и конвертации видео и аудио с YouTube. Проект объединяет возможности **yt-dlp** и **FFmpeg** с интерфейсом, спроектированным по канонам дизайн-системы **Google Material Design 3 (M3 Expressive)** с поддержкой динамических палитр **Monet**.
 
 Приложение работает в нативном контейнере Microsoft Edge WebView2 без консольных окон и стороннего оверхеда, поддерживает выбор мультиязычных дубляжей, форматы до 4K/8K IMAX, точную обрезку по таймкодам, параллельную очередь задач и обход сетевых ограничений через имитацию TLS-отпечатка Chrome.
+
+---
+
+## Сравнение с альтернативами
+
+| Возможность | YT Deck | 4K Video Downloader | Веб-сервисы (Cobalt / SaveFrom) |
+| :--- | :--- | :--- | :--- |
+| **Реклама и спам** | Нет (0% телеметрии, чистый Open Source) | Навязчивые баннеры и платные апсейлы | Агрессивная реклама, попапы и редиректы |
+| **Ограничения качества** | До 8K / 60fps / HDR / IMAX | Ограничено в бесплатной версии | Часто ограничено до 720p или 1080p |
+| **Мультиязычный дубляж** | Полное сканирование и выбор дорожек | Редко / не поддерживается | Не поддерживается |
+| **Покадровая обрезка** | Встроенный интерактивный таймлайн-слайдер | Не поддерживается | Не поддерживается |
+| **Лимиты скачиваний** | Безлимитная локальная очередь | Лимит 30 скачиваний в сутки | Троттлинг серверов и очереди ожидания |
+| **Движок под капотом** | Открытый локальный yt-dlp + FFmpeg | Закрытый проприетарный модуль | Сторонние прокси-серверы |
+
+---
+
+## Визуальный обзор и ключевые возможности
+
+### Интерактивная обрезка по таймкодам
+Локальная обрезка фрагментов без потерь качества до начала полной загрузки. Передвигайте маркеры начала и конца или введите точный диапазон ЧЧ:ММ:СС — приложение выкачает только нужный отрезок, экономя гигабайты трафика.
+
+<p align="center">
+  <img src="assets/screenshots/trim_editor.png" alt="Интерактивная обрезка видео по таймкодам" width="900">
+</p>
+
+### Диспетчер очереди и приоритизация потоков
+Параллельная или последовательная загрузка с отображением реальной скорости (МБ/с), таймера ETA, скачанного объёма и распределением приоритетов (Высокий / Обычный / Низкий).
+
+<p align="center">
+  <img src="assets/screenshots/queue_manager.png" alt="Диспетчер очереди задач с балансировкой скорости" width="900">
+</p>
+
+### Персонализация Material You и палитры Monet
+Интерфейс адаптирован под рекомендации Google Material Design 3 с 7 динамическими акцентными палитрами (YouTube Crimson, Sunset Amber, Ocean Azure, Emerald Forest, Electric Violet, Sunset Rose и Mint Teal), а также поддержкой Тёмной, Светлой и Автоматической системной тем.
+
+<p align="center">
+  <img src="assets/screenshots/settings_monet.png" alt="Настройки темы и акцентных палитр Monet" width="900">
+</p>
 
 ---
 
@@ -184,6 +228,26 @@ ytapp/
     │   └── style.css       # Дизайн-токены M3, палитры Monet, адаптивная верстка
     └── js/
         └── app.js          # Логика клиента, Socket.IO обработчики, движок тем Monet
+```
+
+---
+
+## Предупреждение Windows SmartScreen и проверка безопасности
+
+При первом запуске `YT_Deck_Setup.exe` или `YT_Deck-windows-portable.exe` встроенный защитник Windows SmartScreen может показать синий диалог с предупреждением: «Система Windows защитила ваш компьютер».
+
+### Почему это происходит
+YT Deck — бесплатный проект с открытым исходным кодом. Он распространяется свободно и не использует коммерческий платный сертификат подписи кода (EV Code Signing Certificate), стоимость которого составляет сотни долларов в год.
+
+### Как запустить приложение
+1. В появившемся окне защитника нажмите ссылку **Подробнее**.
+2. Нажмите кнопку **Выполнить в любом случае**.
+
+### Проверка подлинности (SHA-256)
+Все бинарные файлы собираются автоматически и публично через сервис GitHub Actions. Вы всегда можете сверить контрольную сумму скачанного файла с таблицей хэшей `SHA256SUMS.txt`, опубликованной на странице [Релизов](https://github.com/skaywhay/ytapp/releases):
+
+```cmd
+certutil -hashfile YT_Deck_Setup.exe SHA256
 ```
 
 ---

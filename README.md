@@ -9,12 +9,18 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/skaywhay/ytapp/releases"><img src="https://img.shields.io/github/v/release/skaywhay/ytapp?style=flat-square&label=Release" alt="Release Version"></a>
+  <a href="https://github.com/skaywhay/ytapp/releases"><img src="https://img.shields.io/github/downloads/skaywhay/ytapp/total?style=flat-square&label=Downloads" alt="Downloads"></a>
+  <a href="https://github.com/skaywhay/ytapp/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/skaywhay/ytapp/release.yml?branch=main&style=flat-square&label=Build" alt="CI Build Status"></a>
   <a href="https://m3.material.io"><img src="https://img.shields.io/badge/UI-Material%20Design%203-6750A4?style=flat-square" alt="Material Design 3"></a>
   <a href="https://m3.material.io/styles/color/the-color-system/tokens"><img src="https://img.shields.io/badge/Theming-Monet%20Palette%20Engine-006A60?style=flat-square" alt="Monet Palette"></a>
-  <a href="https://developer.microsoft.com/en-us/microsoft-edge/webview2/"><img src="https://img.shields.io/badge/Platform-Windows%20WebView2-0078D7?style=flat-square" alt="Windows WebView2"></a>
   <a href="https://github.com/yt-dlp/yt-dlp"><img src="https://img.shields.io/badge/Core-yt--dlp%20%7C%20FFmpeg-FF0000?style=flat-square" alt="yt-dlp FFmpeg"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square" alt="Python"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT%20%2F%20Personal-blue?style=flat-square" alt="License"></a>
+</p>
+
+<p align="center">
+  <img src="assets/screenshots/hero_preview.png" alt="YT Deck Desktop Interface (Material Design 3 Expressive, Crimson Monet Palette)" width="950">
 </p>
 
 ---
@@ -27,7 +33,41 @@ Unlike standard command-line wrappers or outdated GUI utilities, YT Deck deliver
 
 ---
 
-## Features
+## Comparison Matrix
+
+| Feature | YT Deck | 4K Video Downloader | Web Services (Cobalt / SaveFrom) |
+| :--- | :--- | :--- | :--- |
+| **Ads & Tracking** | None (0% telemetry, clean open-source) | Commercial popups and upsell banners | Aggressive ads, popups, and redirects |
+| **Quality Limits** | Up to 8K / 60fps / HDR / IMAX | Restricted in free tier | Often capped at 720p or 1080p |
+| **Multi-Language Audio Dubs** | Full automatic scan and selection | Rare / unsupported | Unsupported |
+| **Lossless Timecode Trimming** | Built-in interactive frame slider | Unsupported | Unsupported |
+| **Download Limits** | Unlimited local batch queue | Capped at 30 downloads per day | Server-side throttling and queues |
+| **Underlying Engine** | Open-source yt-dlp + FFmpeg | Proprietary closed runtime | Third-party proxy servers |
+
+---
+
+## Visual Showcase & Features
+
+### Interactive Timecode Trimming
+Lossless precision trimming before download starts. Drag start/end handles or enter exact HH:MM:SS timestamps to fetch only the requested portion, bypassing multi-gigabyte container downloads.
+
+<p align="center">
+  <img src="assets/screenshots/trim_editor.png" alt="Interactive Timecode Trimming with Dual-Range Slider" width="900">
+</p>
+
+### Queue Manager & Bandwidth Orchestration
+Concurrent stream downloads with real-time speed metrics, remaining size counters, dynamic ETA, and per-item priority scheduling (High / Normal / Low).
+
+<p align="center">
+  <img src="assets/screenshots/queue_manager.png" alt="Queue Manager with Multi-Stream Bandwidth Orchestration" width="900">
+</p>
+
+### Material You & Monet Palette Personalization
+Built on Google Material Design 3 guidelines with 7 accent palettes (YouTube Crimson, Sunset Amber, Ocean Azure, Emerald Forest, Electric Violet, Sunset Rose, and Mint Teal) and full Dark / Light / System theme support.
+
+<p align="center">
+  <img src="assets/screenshots/settings_monet.png" alt="Settings View with Monet Dynamic Color Swatches" width="900">
+</p>
 
 ### Material Design 3 & Monet Engine
 - **M3 Navigation Rail / Tabs**: Seamless switching between the primary Deck workspace, Queue Manager, and Settings view.
@@ -184,6 +224,26 @@ ytapp/
     │   └── style.css       # M3 design tokens, Monet color schemes, responsive layout
     └── js/
         └── app.js          # Client controller, Socket.IO listeners, Monet engine
+```
+
+---
+
+## Windows SmartScreen & Security Verification
+
+When launching `YT_Deck_Setup.exe` or `YT_Deck-windows-portable.exe` on Windows for the first time, Microsoft Defender SmartScreen may display a warning dialog (`Windows protected your PC`).
+
+### Why this happens
+This occurs because YT Deck is a free, open-source project and does not use an expensive commercial EV code-signing certificate (which costs hundreds of dollars annually).
+
+### How to proceed
+1. Click **More info** on the SmartScreen dialog.
+2. Click **Run anyway**.
+
+### Verification
+All releases are compiled completely transparently via public GitHub Actions workflows. You can verify the integrity of any downloaded binary by comparing its SHA-256 hash against `SHA256SUMS.txt` published on the [Releases](https://github.com/skaywhay/ytapp/releases) page:
+
+```cmd
+certutil -hashfile YT_Deck_Setup.exe SHA256
 ```
 
 ---
