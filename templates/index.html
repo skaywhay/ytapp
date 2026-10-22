@@ -62,9 +62,9 @@
         <div class="brand-text">
           <div class="brand-title-wrap">
             <span class="brand-name">YT DECK</span>
-            <span class="brand-pill">v2.4</span>
+            <span class="brand-pill">v{{ app_version }}</span>
           </div>
-          <span class="brand-sub">Быстрая загрузка видео и аудио</span>
+          <span class="brand-sub" data-i18n="brand_subtitle">Быстрая загрузка видео и аудио</span>
         </div>
       </div>
 
@@ -76,7 +76,7 @@
             <polyline points="7 10 12 15 17 10"/>
             <line x1="12" y1="15" x2="12" y2="3"/>
           </svg>
-          <span>Загрузка</span>
+          <span data-i18n="tab_deck">Загрузка</span>
         </button>
         <button id="tab-queue-btn" class="m3-nav-pill md-ripple" role="tab" aria-selected="false" data-tab="queue">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -87,7 +87,7 @@
             <line x1="3" y1="12" x2="3.01" y2="12"></line>
             <line x1="3" y1="18" x2="3.01" y2="18"></line>
           </svg>
-          <span>Очередь</span>
+          <span data-i18n="tab_queue">Очередь</span>
           <span id="queue-count-badge" class="m3-badge m3-badge--tonal queue-pill-badge" hidden>0</span>
         </button>
         <button id="tab-settings-btn" class="m3-nav-pill md-ripple" role="tab" aria-selected="false" data-tab="settings">
@@ -95,7 +95,7 @@
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
-          <span>Настройки</span>
+          <span data-i18n="tab_settings">Настройки</span>
         </button>
       </nav>
 
@@ -104,6 +104,11 @@
         <button id="topbar-ffmpeg-pill" type="button" class="ffmpeg-pill {{ 'ok' if ffmpeg_ok else 'warn' }} md-ripple" title="{{ 'FFmpeg подключён и готов к склейке' if ffmpeg_ok else 'Нажмите для автоматической установки FFmpeg' }}">
           <span class="dot" aria-hidden="true"></span>
           <span id="topbar-ffmpeg-text">{{ 'FFmpeg активен' if ffmpeg_ok else 'FFmpeg не найден' }}</span>
+        </button>
+
+        <!-- Quick Language Switcher Button -->
+        <button id="lang-toggle-btn" class="lang-pill md-ripple" type="button" aria-label="Сменить язык / Switch language" title="Сменить язык (RU / EN)">
+          <span id="topbar-lang-text">{{ 'RU' if language != 'en' else 'EN' }}</span>
         </button>
 
         <!-- Quick Theme Toggle Button -->
@@ -154,8 +159,8 @@
         <div class="slot-header">
           <span class="m3-step-indicator">01</span>
           <div class="slot-header-text">
-            <h2 id="heading-command-bar" class="slot-title">Ссылка на видео</h2>
-            <span class="slot-caption">Вставьте адрес ролика, Shorts или плейлиста YouTube</span>
+            <h2 id="heading-command-bar" class="slot-title" data-i18n="slot1_title">Ссылка на видео</h2>
+            <span class="slot-caption" data-i18n="slot1_caption">Вставьте адрес ролика, Shorts или плейлиста YouTube</span>
           </div>
         </div>
 
@@ -167,18 +172,18 @@
               <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
             </svg>
             <input id="url-input" type="text" placeholder=" " autocomplete="off" spellcheck="false" aria-label="Ссылка на видео" />
-            <label for="url-input" class="m3-floating-label">Ссылка на видео YouTube</label>
+            <label for="url-input" class="m3-floating-label" data-i18n="slot1_label">Ссылка на видео YouTube</label>
             
             <div class="field-actions">
               <!-- Clear Button -->
-              <button id="clear-url-btn" class="m3-icon-btn m3-icon-btn--small md-ripple" type="button" aria-label="Очистить поле" title="Очистить поле" hidden>
+              <button id="clear-url-btn" class="m3-icon-btn m3-icon-btn--small md-ripple" type="button" aria-label="Очистить поле" title="Очистить поле" data-i18n-title="btn_clear_url" data-i18n-aria-label="btn_clear_url" hidden>
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
               </button>
               <!-- Paste from Clipboard Button -->
-              <button id="paste-url-btn" class="m3-icon-btn m3-icon-btn--small md-ripple" type="button" aria-label="Вставить из буфера обмена" title="Вставить из буфера обмена">
+              <button id="paste-url-btn" class="m3-icon-btn m3-icon-btn--small md-ripple" type="button" aria-label="Вставить из буфера обмена" title="Вставить из буфера обмена" data-i18n-title="btn_paste_url" data-i18n-aria-label="btn_paste_url">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
                   <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
@@ -208,7 +213,7 @@
                 <line x1="12" y1="16" x2="12.01" y2="16"></line>
               </svg>
             </span>
-            <span class="btn-label">Найти видео</span>
+            <span class="btn-label" data-i18n="btn_probe">Найти видео</span>
           </button>
         </div>
 
@@ -230,8 +235,8 @@
               <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
             </svg>
           </div>
-          <span class="clipboard-chip-label">В буфере найдена ссылка на YouTube. Вставить?</span>
-          <button id="chip-paste-btn" type="button" class="m3-btn m3-btn--tonal m3-btn--small md-ripple">Вставить</button>
+          <span class="clipboard-chip-label" data-i18n="clipboard_detected">В буфере найдена ссылка на YouTube. Вставить?</span>
+          <button id="chip-paste-btn" type="button" class="m3-btn m3-btn--tonal m3-btn--small md-ripple" data-i18n="btn_paste">Вставить</button>
           <button id="chip-dismiss-btn" type="button" class="m3-icon-btn m3-icon-btn--small md-ripple" aria-label="Закрыть">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -246,16 +251,16 @@
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
             </svg>
-            <span id="proxy-toggle-text">Сетевой прокси / SOCKS (обход блокировок)</span>
+            <span id="proxy-toggle-text" data-i18n="proxy_toggle">Сетевой прокси / SOCKS (обход блокировок)</span>
             <span class="chevron" aria-hidden="true">▾</span>
           </button>
 
           <div id="proxy-row" class="proxy-row" hidden>
             <div class="m3-text-field m3-text-field--outlined">
               <input id="proxy-input" type="text" placeholder=" " autocomplete="off" spellcheck="false" />
-              <label for="proxy-input" class="m3-floating-label">Адрес прокси (socks5://127.0.0.1:1080 или http://...)</label>
+              <label for="proxy-input" class="m3-floating-label" data-i18n="proxy_label">Адрес прокси (socks5://127.0.0.1:1080 или http://...)</label>
             </div>
-            <p class="hint-line">Если доступ к YouTube ограничен провайдером или VPN не маршрутизирует CLI-трафик — введите локальный адрес прокси.</p>
+            <p class="hint-line" data-i18n="proxy_hint">Если доступ к YouTube ограничен провайдером или VPN не маршрутизирует CLI-трафик — введите локальный адрес прокси.</p>
           </div>
         </div>
       </section>
@@ -318,32 +323,32 @@
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
           </div>
-          <h3 class="empty-state-title">Готов к загрузке</h3>
-          <p class="empty-state-desc">Вставьте ссылку на ролик или Shorts в поле выше, либо перетащите файл прямо в это окно</p>
+          <h3 class="empty-state-title" data-i18n="empty_ready">Готов к загрузке</h3>
+          <p class="empty-state-desc" data-i18n="empty_desc">Вставьте ссылку на ролик или Shorts в поле выше, либо перетащите файл прямо в это окно</p>
           
           <div class="quick-scenarios-wrap">
-            <span class="quick-scenarios-label">Быстрые примеры:</span>
+            <span class="quick-scenarios-label" data-i18n="quick_examples_title">Быстрые примеры:</span>
             <div class="quick-chips-row">
               <button type="button" class="quick-scenario-chip md-ripple" data-example="4k">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polygon points="23 7 16 12 23 17 23 7"></polygon>
                   <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
                 </svg>
-                <span>Клип в 4K Ultra HD</span>
+                <span data-i18n="quick_4k">Клип в 4K Ultra HD</span>
               </button>
               <button type="button" class="quick-scenario-chip md-ripple" data-example="shorts">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
                   <line x1="12" y1="18" x2="12.01" y2="18"></line>
                 </svg>
-                <span>YouTube Shorts</span>
+                <span data-i18n="quick_shorts">YouTube Shorts</span>
               </button>
               <button type="button" class="quick-scenario-chip md-ripple" data-example="audio">
                 <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
                   <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
                 </svg>
-                <span>Аудиоподкаст (MP3)</span>
+                <span data-i18n="quick_audio">Аудиоподкаст (MP3)</span>
               </button>
             </div>
           </div>
@@ -388,7 +393,7 @@
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
-            <span>Скачать обложку</span>
+            <span data-i18n="btn_save_thumb">Скачать обложку</span>
           </button>
         </div>
 
@@ -409,8 +414,8 @@
         <div class="slot-header">
           <span class="m3-step-indicator m3-step-indicator--secondary">02</span>
           <div class="slot-header-text">
-            <h2 id="heading-slot-3" class="slot-title">Режим скачивания</h2>
-            <span class="slot-caption">Выберите формат выгрузки медиаконтента</span>
+            <h2 id="heading-slot-3" class="slot-title" data-i18n="slot2_title">Режим скачивания</h2>
+            <span class="slot-caption" data-i18n="slot2_caption">Выберите формат выгрузки медиаконтента</span>
           </div>
         </div>
 
@@ -426,7 +431,7 @@
               <line x1="17" y1="17" x2="22" y2="17"></line>
               <line x1="17" y1="7" x2="22" y2="7"></line>
             </svg>
-            <span>Видео + Звук (MP4)</span>
+            <span data-i18n="mode_both">Видео + Звук (MP4)</span>
           </button>
           <button type="button" class="m3-segment-btn md-ripple" data-mode="audio" role="radio" aria-checked="false">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -434,14 +439,14 @@
               <circle cx="6" cy="18" r="3"></circle>
               <circle cx="18" cy="16" r="3"></circle>
             </svg>
-            <span>Только аудио (MP3 / FLAC)</span>
+            <span data-i18n="mode_audio">Только аудио (MP3 / FLAC)</span>
           </button>
           <button type="button" class="m3-segment-btn md-ripple" data-mode="video" role="radio" aria-checked="false">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polygon points="23 7 16 12 23 17 23 7"></polygon>
               <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
             </svg>
-            <span>Видео без звука</span>
+            <span data-i18n="mode_video">Видео без звука</span>
           </button>
         </div>
       </section>
@@ -453,13 +458,13 @@
         <div class="slot-header">
           <span class="m3-step-indicator m3-step-indicator--secondary">03</span>
           <div class="slot-header-text">
-            <h2 id="heading-slot-quality" class="slot-title">Качество загрузки</h2>
-            <span class="slot-caption">Выберите желаемое разрешение видео или формат звука</span>
+            <h2 id="heading-slot-quality" class="slot-title" data-i18n="slot3_title">Качество загрузки</h2>
+            <span class="slot-caption" data-i18n="slot3_caption">Выберите желаемое разрешение видео или формат звука</span>
           </div>
         </div>
 
         <div class="simple-preset-select-wrap">
-          <label class="m3-field-label" for="simple-preset-select">Профиль качества</label>
+          <label class="m3-field-label" for="simple-preset-select" data-i18n="quality_video_label">Профиль качества</label>
           <div class="m3-select-wrapper mb-0">
             <select id="simple-preset-select" class="m3-select font-mono">
               <option value="best" selected>Максимальное качество (4K / 2K / 1080p MP4)</option>
@@ -483,13 +488,13 @@
             <div class="strip-head">
               <span class="m3-step-indicator m3-step-indicator--secondary">03</span>
               <div class="strip-head-info">
-                <span class="strip-title">Параметры видеопотока</span>
-                <span class="strip-sub">Разрешение, частота кадров и кодек</span>
+                <span class="strip-title" data-i18n="expert_video_title">Параметры видеопотока</span>
+                <span class="strip-sub" data-i18n="expert_video_sub">Разрешение, частота кадров и кодек</span>
               </div>
             </div>
 
             <div class="strip-body" id="video-body">
-              <label class="m3-field-label" for="video-select">Качество видеопотока</label>
+              <label class="m3-field-label" for="video-select" data-i18n="expert_video_label">Качество видеопотока</label>
               <div class="m3-select-wrapper">
                 <select id="video-select" class="m3-select font-mono"></select>
               </div>
@@ -517,8 +522,8 @@
             <div class="strip-head">
               <span class="m3-step-indicator m3-step-indicator--tertiary">03</span>
               <div class="strip-head-info">
-                <span class="strip-title">Параметры аудиопотока</span>
-                <span class="strip-sub">Язык дорожки, битрейт и формат</span>
+                <span class="strip-title" data-i18n="expert_audio_title">Параметры аудиопотока</span>
+                <span class="strip-sub" data-i18n="expert_audio_sub">Язык дорожки, битрейт и формат</span>
               </div>
             </div>
 
@@ -526,7 +531,7 @@
               <!-- Блок выбора языка/дубляжа -->
               <div id="audio-track-wrap" class="field-group" hidden>
                 <div class="field-label-row">
-                  <label class="m3-field-label" for="audio-track-select">Язык / дубляж</label>
+                  <label class="m3-field-label" for="audio-track-select" data-i18n="expert_track_label">Язык / дубляж</label>
                   <span id="audio-track-badge" class="m3-badge m3-badge--tonal"></span>
                 </div>
                 <div class="m3-select-wrapper">
@@ -534,7 +539,7 @@
                 </div>
               </div>
 
-              <label class="m3-field-label" for="audio-select">Качество звука / битрейт</label>
+              <label class="m3-field-label" for="audio-select" data-i18n="expert_audio_label">Качество звука / битрейт</label>
               <div class="m3-select-wrapper">
                 <select id="audio-select" class="m3-select font-mono"></select>
               </div>
@@ -575,8 +580,8 @@
         <div class="slot-header">
           <span class="m3-step-indicator">04</span>
           <div class="slot-header-text">
-            <h2 id="heading-slot-extra" class="slot-title">Дополнительные опции</h2>
-            <span class="slot-caption">Субтитры и обрезка по таймкодам</span>
+            <h2 id="heading-slot-extra" class="slot-title" data-i18n="slot4_title">Дополнительные опции</h2>
+            <span class="slot-caption" data-i18n="slot4_caption">Субтитры и обрезка по таймкодам</span>
           </div>
         </div>
 
@@ -590,11 +595,11 @@
                   <span class="m3-switch-thumb"></span>
                 </span>
               </label>
-              <span class="extra-box-title">Субтитры</span>
+              <span class="extra-box-title" data-i18n="subtitles_title">Субтитры</span>
             </div>
 
             <div id="subtitles-body" class="extra-box-body disabled">
-              <label class="m3-field-label" for="subtitles-select">Язык субтитров</label>
+              <label class="m3-field-label" for="subtitles-select" data-i18n="subtitles_lang_label">Язык субтитров</label>
               <div class="m3-select-wrapper">
                 <select id="subtitles-select" class="m3-select"></select>
               </div>
@@ -602,7 +607,7 @@
               <label id="subtitles-embed-wrap" class="m3-checkbox-label" title="Вшить в MKV/MP4 контейнер">
                 <input type="checkbox" id="subtitles-embed" checked>
                 <span class="m3-checkbox-custom"></span>
-                <span>Вшить субтитры в контейнер</span>
+                <span data-i18n="subtitles_embed_label">Вшить субтитры в контейнер</span>
               </label>
             </div>
           </div>
@@ -616,7 +621,7 @@
                   <span class="m3-switch-thumb"></span>
                 </span>
               </label>
-              <span class="extra-box-title">Обрезка фрагмента</span>
+              <span class="extra-box-title" data-i18n="trim_title">Обрезка фрагмента</span>
               <span id="trim-duration-badge" class="m3-badge m3-badge--tonal trim-duration-badge" hidden>Хронометраж клипа: 00:00</span>
             </div>
 
@@ -639,15 +644,15 @@
               <div class="trim-inputs-row">
                 <div class="m3-text-field m3-text-field--outlined flex-1">
                   <input id="trim-start-input" type="text" placeholder=" " value="00:00:00" spellcheck="false" autocomplete="off" />
-                  <label for="trim-start-input" class="m3-floating-label">Начало (От)</label>
+                  <label for="trim-start-input" class="m3-floating-label" data-i18n="trim_start_label">Начало (От)</label>
                 </div>
                 <span class="trim-divider">—</span>
                 <div class="m3-text-field m3-text-field--outlined flex-1">
                   <input id="trim-end-input" type="text" placeholder=" " value="" spellcheck="false" autocomplete="off" />
-                  <label for="trim-end-input" class="m3-floating-label">Конец (До)</label>
+                  <label for="trim-end-input" class="m3-floating-label" data-i18n="trim_end_label">Конец (До)</label>
                 </div>
               </div>
-              <p class="hint-line">Передвигайте интерактивные ползунки или введите точные значения ЧЧ:ММ:СС. Скачивается только выбранный интервал.</p>
+              <p class="hint-line" data-i18n="trim_hint">Передвигайте интерактивные ползунки или введите точные значения ЧЧ:ММ:СС. Скачивается только выбранный интервал.</p>
             </div>
           </div>
         </div>
@@ -660,8 +665,8 @@
         <div class="slot-header">
           <span class="m3-step-indicator">05</span>
           <div class="slot-header-text">
-            <h2 id="heading-slot-6" class="slot-title">Директория и запуск</h2>
-            <span class="slot-caption">Подтвердите путь сохранения и запустите загрузку</span>
+            <h2 id="heading-slot-6" class="slot-title" data-i18n="slot5_title">Директория и запуск</h2>
+            <span class="slot-caption" data-i18n="slot5_caption">Подтвердите путь сохранения и запустите загрузку</span>
           </div>
         </div>
 
@@ -672,7 +677,7 @@
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
             </svg>
             <input id="dest-input" type="text" class="dest-input font-mono" value="{{ default_dir }}" spellcheck="false" autocomplete="off" placeholder=" " aria-label="Путь для сохранения файлов" />
-            <label for="dest-input" class="m3-floating-label">Папка сохранения</label>
+            <label for="dest-input" class="m3-floating-label" data-i18n="folder_label">Папка сохранения</label>
           </div>
 
           <div class="dest-buttons">
@@ -680,7 +685,7 @@
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/>
               </svg>
-              <span class="btn-text">Выбрать</span>
+              <span class="btn-text" data-i18n="btn_browse">Выбрать</span>
             </button>
             <button id="open-folder-btn" class="m3-btn m3-btn--outlined md-ripple" type="button" title="Открыть текущую папку в проводнике">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -688,7 +693,7 @@
                 <polyline points="15 3 21 3 21 9"/>
                 <line x1="10" y1="14" x2="21" y2="3"/>
               </svg>
-              <span>Открыть</span>
+              <span data-i18n="btn_open_folder">Открыть</span>
             </button>
           </div>
         </div>
@@ -697,7 +702,7 @@
         <!-- Mode Summary Chip -->
         <div class="transfer-head">
           <div class="m3-mode-chip">
-            <span class="mode-label">Режим:</span>
+            <span class="mode-label" data-i18n="mode_chip_prefix">Режим:</span>
             <span id="mode-text" class="mode-value">Видео + звук · MP4</span>
           </div>
         </div>
@@ -712,7 +717,7 @@
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
-              <span class="btn-label">Скачать видео</span>
+              <span class="btn-label" data-i18n="btn_start_download">Скачать видео</span>
             </button>
 
             <!-- Dropdown Action Toggle Button -->
@@ -730,8 +735,8 @@
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
                 <div class="m3-menu-item-text">
-                  <span class="m3-menu-title">Добавить в очередь</span>
-                  <span class="m3-menu-desc">Ставит в конец очереди (фоновая загрузка)</span>
+                  <span class="m3-menu-title" data-i18n="btn_add_to_queue">Добавить в очередь</span>
+                  <span class="m3-menu-desc" data-i18n="btn_add_to_queue_desc">Ставит в конец очереди (фоновая загрузка)</span>
                 </div>
               </button>
             </div>
@@ -756,7 +761,7 @@
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
-                <span>Отмена</span>
+                <span data-i18n="btn_cancel_download">Отмена</span>
               </button>
             </div>
           </div>
@@ -813,15 +818,15 @@
           <div class="slot-header">
             <span class="m3-step-indicator m3-step-indicator--secondary">Q</span>
             <div class="slot-header-text">
-              <h2 id="heading-queue-control" class="slot-title">Диспетчер очереди</h2>
-              <span class="slot-caption">Управление многопоточной выгрузкой и балансировкой скорости</span>
+              <h2 id="heading-queue-control" class="slot-title" data-i18n="queue_title">Диспетчер очереди</h2>
+              <span class="slot-caption" data-i18n="queue_caption">Управление многопоточной выгрузкой и балансировкой скорости</span>
             </div>
           </div>
           <div class="queue-stats-badges">
-            <span class="m3-badge m3-badge--tonal">Всего: <strong id="q-stat-total">0</strong></span>
-            <span class="m3-badge m3-badge--tonal">Активно: <strong id="q-stat-active">0</strong></span>
-            <span class="m3-badge m3-badge--tonal">В очереди: <strong id="q-stat-pending">0</strong></span>
-            <span class="m3-badge m3-badge--tonal">Готово: <strong id="q-stat-done">0</strong></span>
+            <span class="m3-badge m3-badge--tonal"><span data-i18n="stat_total">Всего: </span><strong id="q-stat-total">0</strong></span>
+            <span class="m3-badge m3-badge--tonal"><span data-i18n="stat_active">Активно: </span><strong id="q-stat-active">0</strong></span>
+            <span class="m3-badge m3-badge--tonal"><span data-i18n="stat_pending">В очереди: </span><strong id="q-stat-pending">0</strong></span>
+            <span class="m3-badge m3-badge--tonal"><span data-i18n="stat_done">Готово: </span><strong id="q-stat-done">0</strong></span>
           </div>
         </div>
 
@@ -829,14 +834,14 @@
         <div class="queue-settings-grid">
           <!-- Concurrency Mode Switch: Sequential vs Parallel -->
           <div class="q-setting-box">
-            <span class="m3-field-label">Режим загрузки потоков</span>
+            <span class="m3-field-label" data-i18n="concurrency_label">Режим загрузки потоков</span>
             <div class="m3-segmented-control" id="queue-mode-segmented" role="radiogroup" aria-label="Режим очереди">
               <button type="button" class="m3-segment-btn active md-ripple" data-queue-mode="sequential" role="radio" aria-checked="true" title="1 ролик за раз — 100% скорости канала">
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                   <polyline points="12 5 19 12 12 19"></polyline>
                 </svg>
-                <span>По очереди (1 поток)</span>
+                <span data-i18n="mode_sequential">По очереди (1 поток)</span>
               </button>
               <button type="button" class="m3-segment-btn md-ripple" data-queue-mode="parallel" role="radio" aria-checked="false" title="До 3 роликов одновременно">
                 <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -844,14 +849,14 @@
                   <line x1="4" y1="12" x2="20" y2="12"></line>
                   <line x1="4" y1="18" x2="20" y2="18"></line>
                 </svg>
-                <span>Все вместе (3 потока)</span>
+                <span data-i18n="mode_parallel">Все вместе (3 потока)</span>
               </button>
             </div>
           </div>
 
           <!-- Priority Strategy Select -->
           <div class="q-setting-box">
-            <label class="m3-field-label" for="queue-strategy-select">Приоритет распределения скорости</label>
+            <label class="m3-field-label" for="queue-strategy-select" data-i18n="strategy_label">Приоритет распределения скорости</label>
             <div class="m3-select-wrapper mb-0">
               <select id="queue-strategy-select" class="m3-select">
                 <option value="size">Сначала небольшие файлы</option>
@@ -863,7 +868,7 @@
 
           <!-- Speed Limiter -->
           <div class="q-setting-box">
-            <label class="m3-field-label" for="queue-speed-select">Лимит суммарной скорости</label>
+            <label class="m3-field-label" for="queue-speed-select" data-i18n="speed_limit_label">Лимит суммарной скорости</label>
             <div class="m3-select-wrapper mb-0">
               <select id="queue-speed-select" class="m3-select">
                 <option value="0">Максимальная (Без ограничений)</option>
@@ -883,21 +888,21 @@
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="5 3 19 12 5 21 5 3"></polygon>
               </svg>
-              <span>Запустить все</span>
+              <span data-i18n="btn_queue_start_all">Запустить все</span>
             </button>
             <button id="queue-pause-all-btn" type="button" class="m3-btn m3-btn--outlined m3-btn--small md-ripple">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="6" y="4" width="4" height="16"></rect>
                 <rect x="14" y="4" width="4" height="16"></rect>
               </svg>
-              <span>Пауза</span>
+              <span data-i18n="btn_queue_pause_all">Пауза</span>
             </button>
             <button id="queue-toggle-batch-btn" type="button" class="m3-btn m3-btn--filled m3-btn--small md-ripple">
               <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
-              <span>Пакетный ввод ссылок</span>
+              <span data-i18n="btn_queue_batch">Пакетный ввод ссылок</span>
             </button>
           </div>
 
@@ -907,7 +912,7 @@
                 <polyline points="3 6 5 6 21 6"></polyline>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
               </svg>
-              <span>Очистить завершённые</span>
+              <span data-i18n="btn_queue_clear_done">Очистить завершённые</span>
             </button>
           </div>
         </div>
@@ -917,8 +922,8 @@
       <section id="batch-add-drawer" class="m3-card m3-card--outlined batch-add-card" hidden aria-label="Пакетное добавление">
         <div class="batch-card-head">
           <div class="batch-head-info">
-            <h3 class="batch-title">Добавление списка ссылок</h3>
-            <span class="batch-sub">Вставьте ссылки на видео, Shorts или плейлисты YouTube (по одной на строке)</span>
+            <h3 class="batch-title" data-i18n="batch_drawer_title">Добавление списка ссылок</h3>
+            <span class="batch-sub" data-i18n="batch_drawer_label">Вставьте ссылки на видео, Shorts или плейлисты YouTube (по одной на строке)</span>
           </div>
           <button id="close-batch-drawer-btn" type="button" class="m3-icon-btn m3-icon-btn--small md-ripple" title="Скрыть форму">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -956,7 +961,7 @@
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
-            <span>Добавить в очередь</span>
+            <span data-i18n="btn_batch_submit">Добавить в очередь</span>
           </button>
         </div>
       </section>
@@ -975,6 +980,35 @@
          ==================================================================== -->
     <div id="view-settings" class="tab-view" hidden>
 
+      <!-- CARD 0: INTERFACE LANGUAGE -->
+      <section class="m3-card m3-card--elevated settings-card" aria-labelledby="heading-settings-lang">
+        <div class="settings-card-header">
+          <div class="settings-icon-badge">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="2" y1="12" x2="22" y2="12"></line>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+            </svg>
+          </div>
+          <div class="settings-header-text">
+            <h2 id="heading-settings-lang" class="settings-card-title" data-i18n="settings_lang_title">Язык интерфейса</h2>
+            <span class="settings-card-subtitle" data-i18n="settings_lang_subtitle">Выберите язык отображения приложения</span>
+          </div>
+        </div>
+
+        <div class="settings-field-group">
+          <span class="m3-field-label" data-i18n="settings_lang_label">Язык приложения</span>
+          <div class="m3-segmented-control" id="language-mode-segmented" role="radiogroup" aria-label="Язык интерфейса">
+            <button type="button" class="m3-segment-btn md-ripple {{ 'active' if language != 'en' else '' }}" data-lang="ru" role="radio" aria-checked="{{ 'true' if language != 'en' else 'false' }}">
+              <span>Русский</span>
+            </button>
+            <button type="button" class="m3-segment-btn md-ripple {{ 'active' if language == 'en' else '' }}" data-lang="en" role="radio" aria-checked="{{ 'true' if language == 'en' else 'false' }}">
+              <span>English</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
       <!-- CARD 1: THEME & MONET PALETTE -->
       <section class="m3-card m3-card--elevated settings-card" aria-labelledby="heading-settings-theme">
         <div class="settings-card-header">
@@ -984,32 +1018,32 @@
             </svg>
           </div>
           <div class="settings-header-text">
-            <h2 id="heading-settings-theme" class="settings-card-title">Тема и динамические цвета Monet</h2>
-            <span class="settings-card-subtitle">Персонализация внешнего вида приложения в стиле Material You</span>
+            <h2 id="heading-settings-theme" class="settings-card-title" data-i18n="settings_theme_title">Тема и динамические цвета Monet</h2>
+            <span class="settings-card-subtitle" data-i18n="settings_theme_subtitle">Персонализация внешнего вида приложения в стиле Material You</span>
           </div>
         </div>
 
         <!-- Mode: Dark / Light / Auto -->
         <div class="settings-field-group">
-          <span class="m3-field-label">Режим отображения</span>
+          <span class="m3-field-label" data-i18n="settings_theme_mode_label">Режим отображения</span>
           <div class="m3-segmented-control" id="theme-mode-segmented" role="radiogroup" aria-label="Режим темы">
             <button type="button" class="m3-segment-btn md-ripple" data-theme-mode="dark" role="radio" aria-checked="true">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
               </svg>
-              <span>Тёмная</span>
+              <span data-i18n="theme_dark">Тёмная</span>
             </button>
             <button type="button" class="m3-segment-btn md-ripple" data-theme-mode="light" role="radio" aria-checked="false">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
               </svg>
-              <span>Светлая</span>
+              <span data-i18n="theme_light">Светлая</span>
             </button>
             <button type="button" class="m3-segment-btn md-ripple" data-theme-mode="auto" role="radio" aria-checked="false">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
               </svg>
-              <span>Системная</span>
+              <span data-i18n="theme_auto">Системная</span>
             </button>
           </div>
         </div>
@@ -1017,7 +1051,7 @@
         <!-- Monet Palette Swatches -->
         <div class="settings-field-group">
           <div class="field-label-row">
-            <span class="m3-field-label">Акцентная палитра (Monet)</span>
+            <span class="m3-field-label" data-i18n="settings_monet_palette_label">Акцентная палитра (Monet)</span>
             <span id="active-monet-name" class="m3-badge m3-badge--tonal">YouTube Crimson</span>
           </div>
           <div id="monet-swatches-grid" class="monet-swatches-grid" role="radiogroup" aria-label="Палитры Monet">
@@ -1039,13 +1073,13 @@
             </svg>
           </div>
           <div class="settings-header-text">
-            <h2 id="heading-settings-cookies" class="settings-card-title">Импорт авторизации (Cookies)</h2>
-            <span class="settings-card-subtitle">Обход капчи, защиты от ботов YouTube и доступ к видео 18+</span>
+            <h2 id="heading-settings-cookies" class="settings-card-title" data-i18n="settings_cookies_title">Импорт авторизации (Cookies)</h2>
+            <span class="settings-card-subtitle" data-i18n="settings_cookies_subtitle">Обход капчи, защиты от ботов YouTube и доступ к видео 18+</span>
           </div>
         </div>
 
         <div class="settings-field-group">
-          <label class="m3-field-label" for="settings-cookies-select">Браузер для считывания сессии</label>
+          <label class="m3-field-label" for="settings-cookies-select" data-i18n="settings_cookies_label">Браузер для считывания сессии</label>
           <div class="m3-select-wrapper">
             <select id="settings-cookies-select" class="m3-select">
               <option value="none">Без авторизации (по умолчанию)</option>
@@ -1057,7 +1091,7 @@
               <option value="vivaldi">Vivaldi</option>
             </select>
           </div>
-          <p class="hint-line">Позволяет скачивать видео с возрастным ограничением 18+, приватные ролики, доступные по ссылке видео и надежно обходить капчи/блокировки YouTube.</p>
+          <p class="hint-line" data-i18n="settings_cookies_hint">Позволяет скачивать видео с возрастным ограничением 18+, приватные ролики, доступные по ссылке видео и надежно обходить капчи/блокировки YouTube.</p>
         </div>
       </section>
 
@@ -1070,8 +1104,8 @@
             </svg>
           </div>
           <div class="settings-header-text">
-            <h2 id="heading-settings-folder" class="settings-card-title">Папка загрузок по умолчанию</h2>
-            <span class="settings-card-subtitle">Директория, которая автоматически подставляется при каждом запуске</span>
+            <h2 id="heading-settings-folder" class="settings-card-title" data-i18n="settings_folder_title">Папка загрузок по умолчанию</h2>
+            <span class="settings-card-subtitle" data-i18n="settings_folder_subtitle">Директория, которая автоматически подставляется при каждом запуске</span>
           </div>
         </div>
 
@@ -1081,20 +1115,20 @@
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
             </svg>
             <input id="settings-default-dir-input" type="text" class="font-mono" value="{{ default_dir }}" spellcheck="false" autocomplete="off" placeholder=" " />
-            <label for="settings-default-dir-input" class="m3-floating-label">Папка по умолчанию</label>
+            <label for="settings-default-dir-input" class="m3-floating-label" data-i18n="settings_folder_input_label">Папка по умолчанию</label>
           </div>
           <div class="dest-buttons">
             <button id="settings-select-folder-btn" class="m3-btn m3-btn--tonal md-ripple" type="button" title="Выбрать папку через проводник">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/>
               </svg>
-              <span>Выбрать</span>
+              <span data-i18n="btn_browse">Выбрать</span>
             </button>
             <button id="settings-open-folder-btn" class="m3-btn m3-btn--outlined md-ripple" type="button" title="Открыть текущую папку в проводнике">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
               </svg>
-              <span>Открыть</span>
+              <span data-i18n="btn_open_folder">Открыть</span>
             </button>
           </div>
         </div>
@@ -1102,7 +1136,7 @@
         <div class="settings-folder-actions">
           <button id="reset-default-dir-btn" class="m3-btn m3-btn--outlined m3-btn--small md-ripple" type="button">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
-            <span>Сбросить к ~/Downloads/YT-Deck</span>
+            <span data-i18n="btn_reset_folder">Сбросить к ~/Downloads/YT-Deck</span>
           </button>
         </div>
       </section>
@@ -1117,8 +1151,8 @@
             </svg>
           </div>
           <div class="settings-header-text">
-            <h2 id="heading-settings-advanced" class="settings-card-title">Продвинутые настройки</h2>
-            <span class="settings-card-subtitle">Экспертный режим, параметры кодеков и контейнеров по умолчанию</span>
+            <h2 id="heading-settings-advanced" class="settings-card-title" data-i18n="settings_adv_title">Продвинутые настройки</h2>
+            <span class="settings-card-subtitle" data-i18n="settings_adv_subtitle">Экспертный режим, параметры кодеков и контейнеров по умолчанию</span>
           </div>
         </div>
 
@@ -1126,8 +1160,8 @@
         <div class="settings-field-group">
           <div class="settings-switch-row">
             <div class="settings-switch-info">
-              <span class="m3-field-label">Экспертный режим</span>
-              <p class="hint-line">Отображать подробный выбор отдельных видео-, аудиодорожек и субтитров на главной вкладке загрузки</p>
+              <span class="m3-field-label" data-i18n="settings_expert_label">Экспертный режим</span>
+              <p class="hint-line" data-i18n="settings_expert_hint">Отображать подробный выбор отдельных видео-, аудиодорожек и субтитров на главной вкладке загрузки</p>
             </div>
             <label class="m3-switch" title="Включить экспертный режим">
               <input type="checkbox" id="settings-expert-mode-switch">
@@ -1141,7 +1175,7 @@
         <!-- Preferred Codec & Container Grid -->
         <div class="settings-advanced-grid">
           <div class="settings-field-group">
-            <label class="m3-field-label" for="settings-pref-codec">Предпочитаемый видеокодек</label>
+            <label class="m3-field-label" for="settings-pref-codec" data-i18n="settings_codec_label">Предпочитаемый видеокодек</label>
             <div class="m3-select-wrapper mb-0">
               <select id="settings-pref-codec" class="m3-select">
                 <option value="auto">Автоматически (наилучшая совместимость)</option>
@@ -1153,7 +1187,7 @@
           </div>
 
           <div class="settings-field-group">
-            <label class="m3-field-label" for="settings-pref-container">Формат контейнера по умолчанию</label>
+            <label class="m3-field-label" for="settings-pref-container" data-i18n="settings_container_label">Формат контейнера по умолчанию</label>
             <div class="m3-select-wrapper mb-0">
               <select id="settings-pref-container" class="m3-select">
                 <option value="mp4">MP4 (универсальный для любых устройств)</option>
@@ -1164,7 +1198,7 @@
           </div>
 
           <div class="settings-field-group">
-            <label class="m3-field-label" for="settings-pref-audio-format">Формат аудио по умолчанию</label>
+            <label class="m3-field-label" for="settings-pref-audio-format" data-i18n="settings_audio_label">Формат аудио по умолчанию</label>
             <div class="m3-select-wrapper mb-0">
               <select id="settings-pref-audio-format" class="m3-select">
                 <option value="mp3">MP3 (320 kbps)</option>
@@ -1186,15 +1220,30 @@
             </svg>
           </div>
           <div class="settings-header-text">
-            <h2 id="heading-settings-system" class="settings-card-title">Сведения о системе и ядре</h2>
-            <span class="settings-card-subtitle">Версии движков, автообновление и медиаконвертер</span>
+            <h2 id="heading-settings-system" class="settings-card-title" data-i18n="settings_system_title">Сведения о системе и ядре</h2>
+            <span class="settings-card-subtitle" data-i18n="settings_system_subtitle">Версии движков, автообновление и медиаконвертер</span>
           </div>
         </div>
 
         <div class="system-info-grid">
+          <div class="info-tile info-tile--app">
+            <div class="info-tile-top">
+              <span class="info-tile-label" data-i18n="tile_app_label">Приложение YT Deck</span>
+              <span id="engine-app-ver-badge" class="m3-badge m3-badge--primary font-mono">v{{ app_version }}</span>
+            </div>
+            <span class="info-tile-val font-mono">YT Deck Client</span>
+            <button id="check-app-update-btn" type="button" class="m3-btn m3-btn--tonal m3-btn--small md-ripple mt-2">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
+              <span data-i18n="btn_check_app_update">Проверить обновления</span>
+            </button>
+            <div id="app-update-status" class="update-status-line" hidden></div>
+          </div>
+
           <div class="info-tile">
             <div class="info-tile-top">
-              <span class="info-tile-label">Модуль выгрузки</span>
+              <span class="info-tile-label" data-i18n="tile_ytdlp_label">Модуль выгрузки</span>
               <span id="engine-ytdlp-ver-badge" class="m3-badge m3-badge--tonal">{{ ytdlp_version }}</span>
             </div>
             <span class="info-tile-val font-mono">yt-dlp Core</span>
@@ -1202,14 +1251,14 @@
               <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
               </svg>
-              <span>Проверить обновления</span>
+              <span data-i18n="btn_check_ytdlp_update">Проверить обновления</span>
             </button>
             <div id="ytdlp-update-status" class="update-status-line" hidden></div>
           </div>
 
           <div class="info-tile">
             <div class="info-tile-top">
-              <span class="info-tile-label">Медиаконвертер</span>
+              <span class="info-tile-label" data-i18n="tile_ffmpeg_label">Медиаконвертер</span>
               <span id="engine-ffmpeg-badge" class="m3-badge {{ 'm3-badge--tonal' if ffmpeg_ok else 'm3-badge--warn' }}">{{ 'Активен' if ffmpeg_ok else 'Не найден' }}</span>
             </div>
             <span class="info-tile-val font-mono">FFmpeg Engine</span>
@@ -1220,26 +1269,26 @@
                 <polyline points="7 10 12 15 17 10"/>
                 <line x1="12" y1="15" x2="12" y2="3"/>
               </svg>
-              <span>Установить FFmpeg</span>
+              <span data-i18n="btn_download_ffmpeg">Установить FFmpeg</span>
             </button>
             {% else %}
             <button id="download-ffmpeg-btn" type="button" class="m3-btn m3-btn--outlined m3-btn--small md-ripple mt-2" title="Переустановить или обновить локальный бинарник FFmpeg">
-              <span>Обновить бинарник</span>
+              <span data-i18n="btn_update_ffmpeg">Обновить бинарник</span>
             </button>
             {% endif %}
             <div id="ffmpeg-download-status" class="update-status-line" hidden></div>
           </div>
 
           <div class="info-tile">
-            <span class="info-tile-label">Дизайн-система</span>
+            <span class="info-tile-label" data-i18n="tile_design_label">Дизайн-система</span>
             <span class="info-tile-val font-mono">M3 Expressive + Monet</span>
-            <span class="info-tile-sub">7 палитр, Elevation tokens</span>
+            <span class="info-tile-sub" data-i18n="tile_design_sub">7 палитр, Elevation tokens</span>
           </div>
 
           <div class="info-tile">
-            <span class="info-tile-label">Клиентское окно</span>
+            <span class="info-tile-label" data-i18n="tile_webview_label">Клиентское окно</span>
             <span class="info-tile-val font-mono">Edge WebView2</span>
-            <span class="info-tile-sub">Аппаратное ускорение GUI</span>
+            <span class="info-tile-sub" data-i18n="tile_webview_sub">Аппаратное ускорение GUI</span>
           </div>
         </div>
       </section>

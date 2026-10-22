@@ -187,3 +187,66 @@ def download_ffmpeg_engine(bin_dir):
         return {"ok": False, "error": "Не удалось распаковать ffmpeg.exe"}
     except Exception as e:
         return {"ok": False, "error": f"Ошибка скачивания FFmpeg: {e}"}
+
+
+def check_app_update():
+    """
+    Checks GitHub Releases for the latest version of YT Deck (skaywhay/ytapp).
+    """
+    from core.config import APP_VERSION, GITHUB_REPO
+    try:
+        url = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "YT-Deck-Client", "Accept": "application/vnd.github.v3+json"}
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+
+        latest_tag = data.get("tag_name", "").strip()
+        clean_latest = latest_tag.lstrip("v").strip()
+        clean_curr = APP_VERSION.lstrip("v").strip()
+
+        # Parse semver tuples for comparison
+        def parse_ver(v_str):
+            parts = []
+            for part in re.split(r"[\.-]", v_str):
+                if part.isdigit():
+                    parts.append(int(part))
+                else:
+                    parts.append(0)
+            while len(parts) < 3:
+                parts.append(0)
+            return tuple(parts[:3])
+
+        latest_tuple = parse_ver(clean_latest)
+        curr_tuple = parse_ver(clean_curr)
+        has_update = latest_tuple > curr_tuple
+
+        assets = []
+        for a in data.get("assets", []):
+            assets.append({
+                "name": a.get("name"),
+                "size_mb": round(a.get("size", 0) / (1024 * 1024), 2),
+                "download_url": a.get("browser_download_url"),
+            })
+
+        return {
+            "ok": True,
+            "has_update": has_update,
+            "current_version": f"v{clean_curr}",
+            "latest_version": latest_tag if latest_tag.startswith("v") else f"v{latest_tag}",
+            "release_name": data.get("name") or latest_tag,
+            "release_url": data.get("html_url") or f"https://github.com/{GITHUB_REPO}/releases/latest",
+            "release_notes": data.get("body") or "",
+            "published_at": data.get("published_at") or "",
+            "assets": assets,
+        }
+    except Exception as e:
+        from core.config import APP_VERSION
+        return {
+            "ok": False,
+            "error": f"Не удалось проверить обновления: {e}",
+            "current_version": f"v{APP_VERSION}",
+        }
+

@@ -45,12 +45,16 @@ if os.path.isdir(LOCAL_YTDLP_DIR) and LOCAL_YTDLP_DIR not in sys.path:
 TEMP_COOKIES_DIR = os.path.join(USER_DATA_DIR, "temp_cookies")
 os.makedirs(TEMP_COOKIES_DIR, exist_ok=True)
 
+APP_VERSION = "2.5.0"
+GITHUB_REPO = "skaywhay/ytapp"
+
 CONFIG_FILE = os.path.join(USER_DATA_DIR, "config.json")
 QUEUE_FILE = os.path.join(USER_DATA_DIR, "queue.json")
 
 
 def load_config():
     defaults = {
+        "language": "ru",
         "theme_mode": "dark",
         "monet_palette": "crimson",
         "default_dir": DEFAULT_DOWNLOAD_DIR,

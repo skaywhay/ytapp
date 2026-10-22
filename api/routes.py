@@ -9,6 +9,7 @@ from flask import Blueprint, render_template, request, jsonify, send_from_direct
 import yt_dlp
 from picker import pick_with_powershell, pick_with_tkinter
 from core.config import (
+    APP_VERSION,
     BIN_DIR,
     DEFAULT_DOWNLOAD_DIR,
     load_config,
@@ -43,7 +44,7 @@ from core.queue_manager import (
     JOBS,
     JOBS_LOCK,
 )
-from services.updater import update_ytdlp_engine, download_ffmpeg_engine
+from services.updater import update_ytdlp_engine, download_ffmpeg_engine, check_app_update
 
 api_bp = Blueprint("api", __name__)
 
@@ -72,6 +73,8 @@ def index():
         version=int(time.time()),
         config=cfg,
         ytdlp_version=get_ytdlp_version(),
+        app_version=APP_VERSION,
+        language=cfg.get("language", "ru"),
     )
 
 
@@ -133,6 +136,13 @@ def update_ytdlp():
 @api_bp.route("/api/engine/download-ffmpeg", methods=["POST"])
 def download_ffmpeg_endpoint():
     res = download_ffmpeg_engine(BIN_DIR)
+    status_code = 200 if res.get("ok") else 500
+    return jsonify(res), status_code
+
+
+@api_bp.route("/api/app_update", methods=["GET"])
+def get_app_update():
+    res = check_app_update()
     status_code = 200 if res.get("ok") else 500
     return jsonify(res), status_code
 

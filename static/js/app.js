@@ -44,6 +44,16 @@ const themeIconDark = $('theme-icon-dark');
 const themeIconLight = $('theme-icon-light');
 const themeModeSegmented = $('theme-mode-segmented');
 
+// Language Elements
+const langToggleBtn = $('lang-toggle-btn');
+const topbarLangText = $('topbar-lang-text');
+const languageModeSegmented = $('language-mode-segmented');
+
+// App Update Elements
+const checkAppUpdateBtn = $('check-app-update-btn');
+const appUpdateStatus = $('app-update-status');
+const engineAppVerBadge = $('engine-app-ver-badge');
+
 // Settings Elements
 const monetSwatchesGrid = $('monet-swatches-grid');
 const activeMonetName = $('active-monet-name');
@@ -426,6 +436,494 @@ const MONET_PALETTES = {
     light: { p: '#006A62', onP: '#FFFFFF', pC: '#9CF1E7', onPC: '#00201D', sT: '#006A62' }
   }
 };
+
+// ==========================================
+// 4.1 INTERNATIONALIZATION (i18n) ENGINE
+// ==========================================
+
+const I18N = {
+  ru: {
+    brand_subtitle: 'Быстрая загрузка видео и аудио',
+    tab_deck: 'Загрузка',
+    tab_queue: 'Очередь',
+    tab_settings: 'Настройки',
+    ffmpeg_ok: 'FFmpeg активен',
+    ffmpeg_missing: 'FFmpeg не найден',
+    ffmpeg_ok_title: 'FFmpeg подключён и готов к склейке',
+    ffmpeg_missing_title: 'Нажмите для автоматической установки FFmpeg',
+    theme_toggle_title: 'Сменить тему (Светлая / Тёмная)',
+    lang_toggle_title: 'Сменить язык (RU / EN)',
+
+    slot1_title: 'Ссылка на видео',
+    slot1_caption: 'Вставьте адрес ролика, Shorts или плейлиста YouTube',
+    slot1_label: 'Ссылка на видео YouTube',
+    btn_clear_url: 'Очистить поле',
+    btn_paste_url: 'Вставить из буфера обмена',
+    btn_probe: 'Найти видео',
+    btn_probe_loading: 'Ищем…',
+    btn_probe_found: 'Найдено!',
+    btn_probe_error: 'Ошибка',
+    clipboard_detected: 'В буфере найдена ссылка на YouTube. Вставить?',
+    btn_paste: 'Вставить',
+    proxy_toggle: 'Сетевой прокси / SOCKS (обход блокировок)',
+    proxy_label: 'Адрес прокси (socks5://127.0.0.1:1080 или http://...)',
+    proxy_hint: 'Если доступ к YouTube ограничен провайдером или VPN не маршрутизирует CLI-трафик — введите локальный адрес прокси.',
+    quick_examples_title: 'Быстрые примеры:',
+    quick_4k: 'Клип в 4K Ultra HD',
+    quick_shorts: 'YouTube Shorts',
+    quick_audio: 'Аудиоподкаст (MP3)',
+    empty_ready: 'Готов к загрузке',
+    empty_desc: 'Вставьте ссылку на ролик или Shorts в поле выше, либо перетащите файл прямо в это окно',
+
+    btn_save_thumb: 'Скачать обложку',
+    stat_views: 'просмотров',
+
+    slot2_title: 'Режим скачивания',
+    slot2_caption: 'Выберите формат выгрузки медиаконтента',
+    mode_both: 'Видео + Звук (MP4)',
+    mode_audio: 'Только аудио (MP3 / FLAC)',
+    mode_video: 'Видео без звука',
+
+    slot3_title: 'Качество загрузки',
+    slot3_caption: 'Выберите желаемое разрешение видеоряда',
+    slot3_title_audio: 'Качество звука',
+    slot3_caption_audio: 'Выберите желаемый аудиоформат и битрейт',
+    slot3_title_vonly: 'Качество видео (B-Roll)',
+    slot3_caption_vonly: 'Только видеоряд без аудиодорожки',
+    quality_video_label: 'Разрешение видео',
+    quality_audio_label: 'Формат аудио',
+    preset_best_audio: 'MP3 · 320 kbps (наивысший битрейт)',
+    preset_m4a: 'M4A / AAC · 256 kbps (оригинальный чистый звук)',
+    preset_opus: 'Opus · высокое качество (веб-оптимизация)',
+    preset_flac: 'FLAC · Lossless (студийный звук без потерь)',
+    preset_wav: 'WAV · Без сжатия (несжатое аудио)',
+    preset_best_video: 'Максимальное качество',
+    expert_toggle_show: 'Экспертный выбор дорожек',
+    expert_toggle_hide: 'Скрыть экспертный выбор',
+    expert_video_title: 'Параметры видеопотока',
+    expert_video_sub: 'Разрешение, частота кадров и кодек',
+    expert_video_label: 'Качество видеопотока',
+    expert_audio_title: 'Параметры аудиопотока',
+    expert_audio_sub: 'Битрейт, кодек и альтернативный дубляж',
+    expert_audio_label: 'Качество аудиопотока',
+    expert_track_label: 'Выбор языка дубляжа',
+
+    slot4_title: 'Дополнительные опции',
+    slot4_caption: 'Субтитры и обрезка по таймкодам',
+    subtitles_title: 'Субтитры',
+    subtitles_lang_label: 'Язык субтитров',
+    subtitles_embed_label: 'Вшить субтитры в контейнер',
+    subtitles_none: 'Субтитры не найдены',
+    trim_title: 'Обрезка фрагмента',
+    trim_duration_prefix: 'Хронометраж клипа: ',
+    trim_start_label: 'Начало (От)',
+    trim_end_label: 'Конец (До)',
+    trim_hint: 'Передвигайте интерактивные ползунки или введите точные значения ЧЧ:ММ:СС. Скачивается только выбранный интервал.',
+
+    slot5_title: 'Директория и запуск',
+    slot5_caption: 'Подтвердите путь сохранения и запустите загрузку',
+    folder_label: 'Папка сохранения',
+    btn_browse: 'Выбрать',
+    btn_open_folder: 'Открыть',
+    mode_chip_prefix: 'Режим:',
+    btn_start_download: 'Скачать видео',
+    btn_add_to_queue: 'Добавить в очередь',
+    btn_add_to_queue_desc: 'Ставит в конец очереди (фоновая загрузка)',
+
+    btn_cancel_download: 'Отменить загрузку',
+    merging_stage: 'Сведение через FFmpeg…',
+    download_finished_toast: 'Загрузка успешно завершена!',
+
+    queue_title: 'Диспетчер очереди',
+    queue_caption: 'Управление многопоточной выгрузкой и балансировкой скорости',
+    stat_total: 'Всего: ',
+    stat_active: 'Активно: ',
+    stat_pending: 'В очереди: ',
+    stat_done: 'Готово: ',
+    concurrency_label: 'Режим загрузки потоков',
+    mode_sequential: 'По очереди (1 поток)',
+    mode_parallel: 'Все вместе (3 потока)',
+    strategy_label: 'Приоритет распределения скорости',
+    strategy_size: 'Сначала небольшие файлы',
+    strategy_fifo: 'По порядку добавления',
+    strategy_manual: 'По приоритету задач (Высокий / Обычный)',
+    speed_limit_label: 'Лимит суммарной скорости',
+    speed_unlimited: 'Максимальная (Без ограничений)',
+    btn_queue_start_all: 'Запустить все',
+    btn_queue_pause_all: 'Пауза',
+    btn_queue_batch: 'Пакетный ввод ссылок',
+    btn_queue_clear_done: 'Очистить завершённые',
+    queue_empty_title: 'Очередь выгрузки пуста',
+    queue_empty_desc: 'Добавьте несколько ссылок через «Пакетный ввод» или перейдите на вкладку «Загрузка» и нажмите «В очередь» для любого настроенного ролика.',
+    batch_drawer_title: 'Пакетное добавление ссылок',
+    batch_drawer_label: 'Список URL (по одной ссылке на строку)',
+    batch_drawer_placeholder: 'https://www.youtube.com/watch?v=...\nhttps://youtu.be/...\nhttps://www.youtube.com/shorts/...',
+    btn_batch_submit: 'Добавить в очередь',
+    btn_batch_close: 'Отмена',
+    status_pending: 'В очереди',
+    status_downloading: 'Скачивается',
+    status_merging: 'Склейка FFmpeg',
+    status_done: 'Завершено',
+    status_paused: 'На паузе',
+    status_cancelled: 'Отменено',
+    status_error: 'Ошибка',
+    btn_item_folder: 'Папка',
+    btn_item_pause: 'Пауза',
+    btn_item_resume: 'Продолжить',
+    btn_item_cancel: 'Отмена',
+    btn_item_delete: 'Удалить',
+    prio_high: 'Высокий',
+    prio_normal: 'Обычный',
+    prio_low: 'Низкий',
+
+    settings_lang_title: 'Язык интерфейса',
+    settings_lang_subtitle: 'Выберите язык отображения приложения',
+    settings_lang_label: 'Язык приложения',
+    settings_theme_title: 'Тема и динамические цвета Monet',
+    settings_theme_subtitle: 'Персонализация внешнего вида приложения в стиле Material You',
+    settings_theme_mode_label: 'Режим отображения',
+    theme_dark: 'Тёмная',
+    theme_light: 'Светлая',
+    theme_auto: 'Системная',
+    settings_monet_palette_label: 'Акцентная палитра (Monet)',
+    settings_cookies_title: 'Импорт авторизации (Cookies)',
+    settings_cookies_subtitle: 'Обход капчи, защиты от ботов YouTube и доступ к видео 18+',
+    settings_cookies_label: 'Браузер для считывания сессии',
+    settings_cookies_hint: 'Позволяет скачивать видео с возрастным ограничением 18+, приватные ролики, доступные по ссылке видео и надежно обходить капчи/блокировки YouTube.',
+    cookies_none: 'Без авторизации (по умолчанию)',
+    settings_folder_title: 'Папка загрузок по умолчанию',
+    settings_folder_subtitle: 'Директория, которая автоматически подставляется при каждом запуске',
+    settings_folder_input_label: 'Папка по умолчанию',
+    btn_reset_folder: 'Сбросить к ~/Downloads/YT-Deck',
+    settings_adv_title: 'Продвинутые настройки',
+    settings_adv_subtitle: 'Экспертный режим, параметры кодеков и контейнеров по умолчанию',
+    settings_expert_label: 'Экспертный режим',
+    settings_expert_hint: 'Отображать подробный выбор отдельных видео-, аудиодорожек и субтитров на главной вкладке загрузки',
+    settings_codec_label: 'Предпочитаемый видеокодек',
+    settings_container_label: 'Формат контейнера по умолчанию',
+    settings_audio_label: 'Формат аудио по умолчанию',
+    settings_system_title: 'Сведения о системе и ядре',
+    settings_system_subtitle: 'Версии приложения, движков и проверка обновлений',
+    tile_app_label: 'Приложение YT Deck',
+    btn_check_app_update: 'Проверить обновления',
+    tile_ytdlp_label: 'Модуль выгрузки',
+    btn_check_ytdlp_update: 'Проверить обновления',
+    tile_ffmpeg_label: 'Медиаконвертер',
+    btn_download_ffmpeg: 'Установить FFmpeg',
+    btn_update_ffmpeg: 'Обновить бинарник',
+    tile_design_label: 'Дизайн-система',
+    tile_design_sub: '7 палитр, Elevation tokens',
+    tile_webview_label: 'Клиентское окно',
+    tile_webview_sub: 'Аппаратное ускорение GUI',
+
+    checking_updates: 'Проверка обновлений на GitHub…',
+    new_version_available: 'Доступно обновление',
+    download_update: 'Скачать установщик',
+    release_notes: 'Список изменений',
+    app_up_to_date: 'У вас установлена новейшая версия YT Deck',
+    app_up_to_date_toast: 'У вас установлена актуальная версия YT Deck (',
+    update_available_toast: 'Доступна новая версия YT Deck: ',
+    update_check_error: 'Ошибка проверки обновлений',
+    update_server_error: 'Не удалось связаться с сервером обновлений: ',
+    toast_lang_switched: 'Язык переключён на Русский',
+  },
+  en: {
+    brand_subtitle: 'Fast media stream downloader',
+    tab_deck: 'Deck',
+    tab_queue: 'Queue',
+    tab_settings: 'Settings',
+    ffmpeg_ok: 'FFmpeg Ready',
+    ffmpeg_missing: 'FFmpeg Missing',
+    ffmpeg_ok_title: 'FFmpeg is connected and ready for stream muxing',
+    ffmpeg_missing_title: 'Click to automatically install FFmpeg',
+    theme_toggle_title: 'Switch theme (Light / Dark)',
+    lang_toggle_title: 'Switch language (EN / RU)',
+
+    slot1_title: 'Video Stream URL',
+    slot1_caption: 'Paste a YouTube video, Shorts, or playlist URL',
+    slot1_label: 'YouTube video URL',
+    btn_clear_url: 'Clear URL',
+    btn_paste_url: 'Paste from clipboard',
+    btn_probe: 'Fetch Stream',
+    btn_probe_loading: 'Fetching…',
+    btn_probe_found: 'Found!',
+    btn_probe_error: 'Error',
+    clipboard_detected: 'YouTube link detected in clipboard. Paste?',
+    btn_paste: 'Paste',
+    proxy_toggle: 'Network Proxy / SOCKS (Bypass Geo-blocks)',
+    proxy_label: 'Proxy Address (socks5://127.0.0.1:1080 or http://...)',
+    proxy_hint: 'If YouTube access is restricted by your ISP or VPN does not route CLI traffic, enter a local proxy address.',
+    quick_examples_title: 'Quick Examples:',
+    quick_4k: '4K Ultra HD Clip',
+    quick_shorts: 'YouTube Shorts',
+    quick_audio: 'Audio Podcast (MP3)',
+    empty_ready: 'Ready to Download',
+    empty_desc: 'Paste a video or Shorts URL in the field above, or drag and drop a link into this window',
+
+    btn_save_thumb: 'Save Thumbnail',
+    stat_views: 'views',
+
+    slot2_title: 'Download Mode',
+    slot2_caption: 'Select media stream container format',
+    mode_both: 'Video + Audio (MP4)',
+    mode_audio: 'Audio Only (MP3 / FLAC)',
+    mode_video: 'Video Only (B-Roll)',
+
+    slot3_title: 'Download Quality',
+    slot3_caption: 'Select desired video resolution',
+    slot3_title_audio: 'Audio Quality',
+    slot3_caption_audio: 'Select audio format and bitrate',
+    slot3_title_vonly: 'Video Quality (B-Roll)',
+    slot3_caption_vonly: 'Video stream without audio track',
+    quality_video_label: 'Video Resolution',
+    quality_audio_label: 'Audio Format',
+    preset_best_audio: 'MP3 · 320 kbps (Highest Bitrate)',
+    preset_m4a: 'M4A / AAC · 256 kbps (Clean Native Audio)',
+    preset_opus: 'Opus · High Quality (Web Optimized)',
+    preset_flac: 'FLAC · Lossless (Studio Master Audio)',
+    preset_wav: 'WAV · Uncompressed (PCM Audio)',
+    preset_best_video: 'Maximum Quality',
+    expert_toggle_show: 'Expert Stream Selection',
+    expert_toggle_hide: 'Hide Expert Selection',
+    expert_video_title: 'Video Stream Details',
+    expert_video_sub: 'Resolution, frame rate, and video codec',
+    expert_video_label: 'Video Stream Format',
+    expert_audio_title: 'Audio Stream Details',
+    expert_audio_sub: 'Bitrate, audio codec, and alternate dubs',
+    expert_audio_label: 'Audio Stream Format',
+    expert_track_label: 'Dub Language Selection',
+
+    slot4_title: 'Extra Options',
+    slot4_caption: 'Subtitles and timecode trimming',
+    subtitles_title: 'Subtitles',
+    subtitles_lang_label: 'Subtitle Language',
+    subtitles_embed_label: 'Embed subtitles in container',
+    subtitles_none: 'No subtitles available',
+    trim_title: 'Trim Clip',
+    trim_duration_prefix: 'Clip Duration: ',
+    trim_start_label: 'Start (From)',
+    trim_end_label: 'End (To)',
+    trim_hint: 'Drag interactive timeline handles or enter exact HH:MM:SS values. Only the selected interval will be downloaded.',
+
+    slot5_title: 'Target Directory & Start',
+    slot5_caption: 'Verify save destination and begin processing',
+    folder_label: 'Save Directory',
+    btn_browse: 'Browse',
+    btn_open_folder: 'Open',
+    mode_chip_prefix: 'Mode:',
+    btn_start_download: 'Download Media',
+    btn_add_to_queue: 'Add to Queue',
+    btn_add_to_queue_desc: 'Enqueue task for background batch processing',
+
+    btn_cancel_download: 'Cancel Download',
+    merging_stage: 'Muxing with FFmpeg…',
+    download_finished_toast: 'Download completed successfully!',
+
+    queue_title: 'Queue Manager',
+    queue_caption: 'Multi-stream concurrency and bandwidth allocation',
+    stat_total: 'Total: ',
+    stat_active: 'Active: ',
+    stat_pending: 'Pending: ',
+    stat_done: 'Done: ',
+    concurrency_label: 'Concurrency Mode',
+    mode_sequential: 'Sequential (1 stream)',
+    mode_parallel: 'Parallel (3 streams)',
+    strategy_label: 'Bandwidth Priority Strategy',
+    strategy_size: 'Smallest Files First',
+    strategy_fifo: 'FIFO (Order of Addition)',
+    strategy_manual: 'Custom Priority Ranking (High / Normal)',
+    speed_limit_label: 'Total Speed Limit',
+    speed_unlimited: 'Maximum (Unlimited)',
+    btn_queue_start_all: 'Start All',
+    btn_queue_pause_all: 'Pause All',
+    btn_queue_batch: 'Batch Add URLs',
+    btn_queue_clear_done: 'Clear Completed',
+    queue_empty_title: 'Download Queue is Empty',
+    queue_empty_desc: 'Add links via "Batch Add" or go to the "Deck" tab and click "Add to Queue" for any probed video.',
+    batch_drawer_title: 'Batch URL Ingestion',
+    batch_drawer_label: 'URL List (one link per line)',
+    batch_drawer_placeholder: 'https://www.youtube.com/watch?v=...\nhttps://youtu.be/...\nhttps://www.youtube.com/shorts/...',
+    btn_batch_submit: 'Add to Queue',
+    btn_batch_close: 'Cancel',
+    status_pending: 'Pending',
+    status_downloading: 'Downloading',
+    status_merging: 'FFmpeg Muxing',
+    status_done: 'Completed',
+    status_paused: 'Paused',
+    status_cancelled: 'Cancelled',
+    status_error: 'Error',
+    btn_item_folder: 'Folder',
+    btn_item_pause: 'Pause',
+    btn_item_resume: 'Resume',
+    btn_item_cancel: 'Cancel',
+    btn_item_delete: 'Remove',
+    prio_high: 'High',
+    prio_normal: 'Normal',
+    prio_low: 'Low',
+
+    settings_lang_title: 'Interface Language',
+    settings_lang_subtitle: 'Choose application display language',
+    settings_lang_label: 'Display Language',
+    settings_theme_title: 'Theme & Monet Palette Engine',
+    settings_theme_subtitle: 'Personalize application appearance with Material You colors',
+    settings_theme_mode_label: 'Display Mode',
+    theme_dark: 'Dark',
+    theme_light: 'Light',
+    theme_auto: 'System',
+    settings_monet_palette_label: 'Accent Palette (Monet)',
+    settings_cookies_title: 'Browser Session Cookies',
+    settings_cookies_subtitle: 'Bypass CAPTCHA, YouTube player bot checks, and access 18+ videos',
+    settings_cookies_label: 'Browser for Session Extraction',
+    settings_cookies_hint: 'Enables downloading age-restricted 18+ videos, unlisted media, and bypassing YouTube player bot verification.',
+    cookies_none: 'No authentication (Default)',
+    settings_folder_title: 'Default Download Directory',
+    settings_folder_subtitle: 'Directory populated automatically on application startup',
+    settings_folder_input_label: 'Default Folder',
+    btn_reset_folder: 'Reset to ~/Downloads/YT-Deck',
+    settings_adv_title: 'Advanced Settings',
+    settings_adv_subtitle: 'Expert mode, default codecs, and container preferences',
+    settings_expert_label: 'Expert Mode',
+    settings_expert_hint: 'Display detailed video/audio stream and subtitle selection on main deck',
+    settings_codec_label: 'Preferred Video Codec',
+    settings_container_label: 'Default Container Format',
+    settings_audio_label: 'Default Audio Format',
+    settings_system_title: 'System Information & Updates',
+    settings_system_subtitle: 'Application versions, engine status, and update checks',
+    tile_app_label: 'YT Deck Application',
+    btn_check_app_update: 'Check for Updates',
+    tile_ytdlp_label: 'Extraction Core',
+    btn_check_ytdlp_update: 'Update yt-dlp',
+    tile_ffmpeg_label: 'Media Converter',
+    btn_download_ffmpeg: 'Install FFmpeg',
+    btn_update_ffmpeg: 'Update Binary',
+    tile_design_label: 'Design System',
+    tile_design_sub: '7 Monet palettes, Elevation tokens',
+    tile_webview_label: 'Client Runtime',
+    tile_webview_sub: 'Hardware-accelerated GUI',
+
+    checking_updates: 'Checking GitHub for updates…',
+    new_version_available: 'Update Available',
+    download_update: 'Download Installer',
+    release_notes: 'Release Notes',
+    app_up_to_date: 'You have the latest version of YT Deck',
+    app_up_to_date_toast: 'You are running the latest version of YT Deck (',
+    update_available_toast: 'New version of YT Deck available: ',
+    update_check_error: 'Failed to check for updates',
+    update_server_error: 'Could not contact update server: ',
+    toast_lang_switched: 'Language switched to English',
+  }
+};
+
+let currentLanguage = initialSettings.language || localStorage.getItem('ytdeck_language') || 'ru';
+
+function t(key, fallback = '') {
+  if (I18N[currentLanguage] && I18N[currentLanguage][key] !== undefined) {
+    return I18N[currentLanguage][key];
+  }
+  if (I18N['ru'] && I18N['ru'][key] !== undefined) {
+    return I18N['ru'][key];
+  }
+  return fallback || key;
+}
+
+function applyLanguage(lang, save = true) {
+  if (lang !== 'en' && lang !== 'ru') lang = 'ru';
+  currentLanguage = lang;
+  document.documentElement.setAttribute('lang', lang);
+
+  if (topbarLangText) {
+    topbarLangText.textContent = lang.toUpperCase();
+  }
+
+  // Update Topbar Lang button tooltip
+  if (langToggleBtn) {
+    langToggleBtn.title = t('lang_toggle_title', 'RU / EN');
+  }
+
+  // Update Language Segmented Control in Settings
+  if (languageModeSegmented) {
+    languageModeSegmented.querySelectorAll('.m3-segment-btn').forEach((btn) => {
+      const isMatch = btn.dataset.lang === lang;
+      btn.classList.toggle('active', isMatch);
+      btn.setAttribute('aria-checked', String(isMatch));
+    });
+  }
+
+  // Translate all [data-i18n]
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    const key = el.dataset.i18n;
+    if (I18N[lang] && I18N[lang][key]) {
+      el.textContent = I18N[lang][key];
+    }
+  });
+
+  // Translate all [data-i18n-placeholder]
+  document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+    const key = el.dataset.i18nPlaceholder;
+    if (I18N[lang] && I18N[lang][key]) {
+      el.setAttribute('placeholder', I18N[lang][key]);
+    }
+  });
+
+  // Translate all [data-i18n-title]
+  document.querySelectorAll('[data-i18n-title]').forEach((el) => {
+    const key = el.dataset.i18nTitle;
+    if (I18N[lang] && I18N[lang][key]) {
+      el.setAttribute('title', I18N[lang][key]);
+    }
+  });
+
+  // Translate all [data-i18n-aria-label]
+  document.querySelectorAll('[data-i18n-aria-label]').forEach((el) => {
+    const key = el.dataset.i18nAriaLabel;
+    if (I18N[lang] && I18N[lang][key]) {
+      el.setAttribute('aria-label', I18N[lang][key]);
+    }
+  });
+
+  // Update dynamic controls that render text
+  if (typeof updateMode === 'function') updateMode();
+  if (typeof updateSimpleQualityDropdown === 'function') updateSimpleQualityDropdown(currentMode);
+  if (typeof updateTrimSliderUI === 'function') updateTrimSliderUI();
+
+  // Update Topbar FFmpeg text
+  if (topbarFfmpegText && topbarFfmpegPill) {
+    const isOk = topbarFfmpegPill.classList.contains('ok');
+    topbarFfmpegText.textContent = isOk ? t('ffmpeg_ok') : t('ffmpeg_missing');
+    topbarFfmpegPill.title = isOk ? t('ffmpeg_ok_title') : t('ffmpeg_missing_title');
+  }
+
+  // Update active view if queue
+  if (typeof fetchQueue === 'function' && viewQueue && !viewQueue.hidden) {
+    fetchQueue();
+  }
+
+  if (save) {
+    localStorage.setItem('ytdeck_language', lang);
+    saveSettingsToServer({ language: lang });
+  }
+}
+
+// Hook Language Switchers
+if (langToggleBtn) {
+  langToggleBtn.addEventListener('click', () => {
+    const nextLang = currentLanguage === 'ru' ? 'en' : 'ru';
+    applyLanguage(nextLang, true);
+    showToast(t('toast_lang_switched'), 'info', 2000);
+  });
+}
+
+if (languageModeSegmented) {
+  languageModeSegmented.querySelectorAll('.m3-segment-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const selectedLang = btn.dataset.lang;
+      if (selectedLang && selectedLang !== currentLanguage) {
+        applyLanguage(selectedLang, true);
+        showToast(t('toast_lang_switched'), 'info', 2000);
+      }
+    });
+  });
+}
 
 let currentThemeMode = initialSettings.theme_mode || localStorage.getItem('ytdeck_theme_mode') || 'dark';
 let currentMonetPalette = initialSettings.monet_palette || localStorage.getItem('ytdeck_monet_palette') || 'indigo';
@@ -865,6 +1363,76 @@ if (settingsCookiesSelect) {
   });
 }
 
+// Application Update Check (YT Deck)
+async function checkAppUpdate(isManual = true) {
+  if (checkAppUpdateBtn && isManual) checkAppUpdateBtn.disabled = true;
+  if (appUpdateStatus && isManual) {
+    appUpdateStatus.textContent = t('checking_updates', 'Проверка обновлений на GitHub…');
+    appUpdateStatus.hidden = false;
+  }
+
+  try {
+    const res = await fetch('/api/app_update');
+    const data = await res.json();
+    if (data.ok) {
+      if (data.has_update) {
+        showToast(`${t('update_available_toast', 'Доступна новая версия YT Deck: ')}${data.latest_version}`, 'info', 7000);
+
+        if (engineAppVerBadge) {
+          engineAppVerBadge.className = 'm3-badge update-badge--new font-mono';
+          engineAppVerBadge.textContent = `${data.current_version} -> ${data.latest_version}`;
+        }
+
+        if (appUpdateStatus) {
+          const setupAsset = (data.assets || []).find((a) => a.name && a.name.endsWith('_Setup.exe'));
+          const portableAsset = (data.assets || []).find((a) => a.name && a.name.includes('portable.exe'));
+          const downloadUrl = setupAsset ? setupAsset.download_url : (portableAsset ? portableAsset.download_url : data.release_url);
+
+          appUpdateStatus.innerHTML = `
+            <div><strong>${t('new_version_available', 'Доступно обновление')}: ${data.latest_version}</strong></div>
+            <div style="margin-top: 6px; display: flex; gap: 8px; flex-wrap: wrap;">
+              <a href="${downloadUrl}" target="_blank" class="m3-btn m3-btn--tonal m3-btn--small md-ripple" style="text-decoration:none;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>${t('download_update', 'Скачать установщик')}</span>
+              </a>
+              <a href="${data.release_url}" target="_blank" class="m3-btn m3-btn--outlined m3-btn--small md-ripple" style="text-decoration:none;">
+                <span>${t('release_notes', 'Список изменений')}</span>
+              </a>
+            </div>
+          `;
+          appUpdateStatus.hidden = false;
+        }
+      } else {
+        if (isManual) {
+          showToast(`${t('app_up_to_date_toast', 'У вас установлена актуальная версия YT Deck (')}${data.current_version})`, 'success', 3500);
+        }
+        if (appUpdateStatus && isManual) {
+          appUpdateStatus.textContent = `${t('app_up_to_date', 'У вас установлена новейшая версия YT Deck')} (${data.current_version})`;
+          appUpdateStatus.hidden = false;
+        }
+      }
+    } else {
+      if (isManual) {
+        showToast(data.error || t('update_check_error', 'Ошибка проверки обновлений'), 'error');
+      }
+      if (appUpdateStatus && isManual) {
+        appUpdateStatus.textContent = data.error || t('update_check_error', 'Ошибка проверки обновлений');
+        appUpdateStatus.hidden = false;
+      }
+    }
+  } catch (e) {
+    if (isManual) {
+      showToast(`${t('update_server_error', 'Не удалось связаться с сервером обновлений: ')}${e.message}`, 'error');
+    }
+  } finally {
+    if (checkAppUpdateBtn) checkAppUpdateBtn.disabled = false;
+  }
+}
+
+if (checkAppUpdateBtn) {
+  checkAppUpdateBtn.addEventListener('click', () => checkAppUpdate(true));
+}
+
 // Engine Updates: yt-dlp & FFmpeg
 if (checkYtdlpUpdateBtn) {
   checkYtdlpUpdateBtn.addEventListener('click', async () => {
@@ -1198,8 +1766,9 @@ function updateTrimSliderUI() {
 
   const clipDuration = Math.max(0, valEnd - valStart);
   const clipStr = formatSecondsToTime(clipDuration);
-  if (trimLblClipInfo) trimLblClipInfo.textContent = `Хронометраж клипа: ${clipStr}`;
-  if (trimDurationBadge) trimDurationBadge.textContent = `Хронометраж клипа: ${clipStr}`;
+  const durLabel = `${t('trim_duration_prefix', 'Хронометраж клипа: ')}${clipStr}`;
+  if (trimLblClipInfo) trimLblClipInfo.textContent = durLabel;
+  if (trimDurationBadge) trimDurationBadge.textContent = durLabel;
 }
 
 function initTrimSlider(durationSec) {
@@ -1259,6 +1828,9 @@ if (trimEndInput) {
 }
 
 function getDubNoun(count) {
+  if (currentLanguage === 'en') {
+    return count === 1 ? 'dub track' : 'dub tracks';
+  }
   const rem10 = count % 10;
   const rem100 = count % 100;
   if (rem100 >= 11 && rem100 <= 19) return 'дорожек';
@@ -1383,16 +1955,16 @@ function updateSimpleQualityDropdown(mode) {
   simplePresetSelect.innerHTML = '';
 
   if (mode === 'audio') {
-    if (titleEl) titleEl.textContent = 'Качество звука';
-    if (captionEl) captionEl.textContent = 'Выберите желаемый аудиоформат и битрейт';
-    if (labelEl) labelEl.textContent = 'Формат аудио';
+    if (titleEl) titleEl.textContent = t('slot3_title_audio', 'Качество звука');
+    if (captionEl) captionEl.textContent = t('slot3_caption_audio', 'Выберите желаемый аудиоформат и битрейт');
+    if (labelEl) labelEl.textContent = t('quality_audio_label', 'Формат аудио');
 
     const audioOptions = [
-      { value: 'mp3', text: 'MP3 · 320 kbps (наивысший битрейт)' },
-      { value: 'm4a', text: 'M4A / AAC · 256 kbps (оригинальный чистый звук)' },
-      { value: 'opus', text: 'Opus · высокое качество (веб-оптимизация)' },
-      { value: 'flac', text: 'FLAC · Lossless (студийный звук без потерь)' },
-      { value: 'wav', text: 'WAV · Без сжатия (несжатое аудио)' }
+      { value: 'mp3', text: t('preset_best_audio', 'MP3 · 320 kbps (наивысший битрейт)') },
+      { value: 'm4a', text: t('preset_m4a', 'M4A / AAC · 256 kbps (оригинальный чистый звук)') },
+      { value: 'opus', text: t('preset_opus', 'Opus · высокое качество (веб-оптимизация)') },
+      { value: 'flac', text: t('preset_flac', 'FLAC · Lossless (студийный звук без потерь)') },
+      { value: 'wav', text: t('preset_wav', 'WAV · Без сжатия (несжатое аудио)') }
     ];
 
     audioOptions.forEach((item) => {
@@ -1405,9 +1977,9 @@ function updateSimpleQualityDropdown(mode) {
   } else {
     // Mode 'both' or 'video'
     const isVideoOnly = mode === 'video';
-    if (titleEl) titleEl.textContent = isVideoOnly ? 'Качество видео (B-Roll)' : 'Качество загрузки';
-    if (captionEl) captionEl.textContent = isVideoOnly ? 'Только видеоряд без аудиодорожки' : 'Выберите желаемое разрешение видеоряда';
-    if (labelEl) labelEl.textContent = 'Разрешение видео';
+    if (titleEl) titleEl.textContent = isVideoOnly ? t('slot3_title_vonly', 'Качество видео (B-Roll)') : t('slot3_title', 'Качество загрузки');
+    if (captionEl) captionEl.textContent = isVideoOnly ? t('slot3_caption_vonly', 'Только видеоряд без аудиодорожки') : t('slot3_caption', 'Выберите желаемое разрешение видеоряда');
+    if (labelEl) labelEl.textContent = t('quality_video_label', 'Разрешение видео');
 
     let topDesc = '4K / 2K / 1080p · MP4';
     if (lastProbedVideoFormats && lastProbedVideoFormats.length) {
@@ -1422,7 +1994,7 @@ function updateSimpleQualityDropdown(mode) {
 
     const optBest = document.createElement('option');
     optBest.value = 'best';
-    optBest.textContent = `Максимальное качество (${topDesc})`;
+    optBest.textContent = `${t('preset_best_video', 'Максимальное качество')} (${topDesc})`;
     if (selectedSimplePreset === 'best' || !selectedSimplePreset) optBest.selected = true;
     simplePresetSelect.appendChild(optBest);
 
@@ -2490,8 +3062,8 @@ function renderQueue(queueData) {
             <line x1="3" y1="18" x2="3.01" y2="18"></line>
           </svg>
         </div>
-        <h3 class="empty-title">Очередь выгрузки пуста</h3>
-        <p class="empty-desc">Добавьте несколько ссылок через «Пакетный ввод» или перейдите на вкладку «Загрузка» и нажмите «В очередь» для любого настроенного ролика.</p>
+        <h3 class="empty-title">${t('queue_empty_title', 'Очередь выгрузки пуста')}</h3>
+        <p class="empty-desc">${t('queue_empty_desc', 'Добавьте несколько ссылок через «Пакетный ввод» или перейдите на вкладку «Загрузка» и нажмите «В очередь» для любого настроенного ролика.')}</p>
       </div>
     `;
     return;
@@ -2503,25 +3075,25 @@ function renderQueue(queueData) {
     card.id = `queue-item-${item.id}`;
 
     // Format badge text
-    let statusText = 'В очереди';
+    let statusText = t('status_pending', 'В очереди');
     let statusClass = 'tonal';
     if (item.status === 'downloading') {
-      statusText = 'Скачивается';
+      statusText = t('status_downloading', 'Скачивается');
       statusClass = 'primary';
     } else if (item.status === 'merging') {
-      statusText = 'Склейка FFmpeg';
+      statusText = t('status_merging', 'Склейка FFmpeg');
       statusClass = 'primary';
     } else if (item.status === 'done') {
-      statusText = 'Завершено';
+      statusText = t('status_done', 'Завершено');
       statusClass = 'success';
     } else if (item.status === 'paused') {
-      statusText = 'На паузе';
+      statusText = t('status_paused', 'На паузе');
       statusClass = 'warn';
     } else if (item.status === 'cancelled') {
-      statusText = 'Отменено';
+      statusText = t('status_cancelled', 'Отменено');
       statusClass = 'warn';
     } else if (item.status === 'error') {
-      statusText = 'Ошибка';
+      statusText = t('status_error', 'Ошибка');
       statusClass = 'error';
     }
 
@@ -2530,8 +3102,8 @@ function renderQueue(queueData) {
 
     // Format mode / container label
     const modeLabel = item.mode === 'audio'
-      ? `Аудио · ${item.audio_codec?.toUpperCase() || 'MP3'}`
-      : `Видео · ${item.container?.toUpperCase() || 'MP4'}`;
+      ? `${t('mode_audio', 'Аудио')} · ${item.audio_codec?.toUpperCase() || 'MP3'}`
+      : `${t('mode_both', 'Видео')} · ${item.container?.toUpperCase() || 'MP4'}`;
 
     card.innerHTML = `
       <div class="q-item-left">
@@ -2572,20 +3144,20 @@ function renderQueue(queueData) {
 
       <div class="q-item-right">
         <!-- Priority Selector -->
-        <div class="q-priority-control" title="Приоритет задачи">
+        <div class="q-priority-control" title="${t('prio_tooltip', 'Приоритет задачи')}">
           <select class="m3-select q-prio-select font-mono" data-item-id="${item.id}">
-            <option value="high" ${item.priority === 'high' ? 'selected' : ''}>Высокий</option>
-            <option value="normal" ${item.priority === 'normal' || !item.priority ? 'selected' : ''}>Обычный</option>
-            <option value="low" ${item.priority === 'low' ? 'selected' : ''}>Низкий</option>
+            <option value="high" ${item.priority === 'high' ? 'selected' : ''}>${t('prio_high', 'Высокий')}</option>
+            <option value="normal" ${item.priority === 'normal' || !item.priority ? 'selected' : ''}>${t('prio_normal', 'Обычный')}</option>
+            <option value="low" ${item.priority === 'low' ? 'selected' : ''}>${t('prio_low', 'Низкий')}</option>
           </select>
         </div>
 
         <!-- Reorder Buttons -->
         <div class="q-reorder-btns">
-          <button type="button" class="m3-icon-btn m3-icon-btn--small q-move-up-btn md-ripple" data-item-id="${item.id}" title="Переместить вверх" ${index === 0 ? 'disabled' : ''}>
+          <button type="button" class="m3-icon-btn m3-icon-btn--small q-move-up-btn md-ripple" data-item-id="${item.id}" title="${t('btn_move_up', 'Переместить вверх')}" ${index === 0 ? 'disabled' : ''}>
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
           </button>
-          <button type="button" class="m3-icon-btn m3-icon-btn--small q-move-down-btn md-ripple" data-item-id="${item.id}" title="Переместить вниз" ${index === items.length - 1 ? 'disabled' : ''}>
+          <button type="button" class="m3-icon-btn m3-icon-btn--small q-move-down-btn md-ripple" data-item-id="${item.id}" title="${t('btn_move_down', 'Переместить вниз')}" ${index === items.length - 1 ? 'disabled' : ''}>
             <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </button>
         </div>
@@ -2593,19 +3165,19 @@ function renderQueue(queueData) {
         <!-- Item Action Buttons -->
         <div class="q-item-actions">
           ${isRunning ? `
-            <button type="button" class="m3-btn m3-btn--tonal m3-btn--small q-pause-btn md-ripple" data-item-id="${item.id}" title="Приостановить скачивание">Пауза</button>
-            <button type="button" class="m3-btn m3-btn--outlined m3-btn--small q-cancel-btn md-ripple" data-item-id="${item.id}" title="Отменить скачивание">Отмена</button>
+            <button type="button" class="m3-btn m3-btn--tonal m3-btn--small q-pause-btn md-ripple" data-item-id="${item.id}" title="${t('btn_item_pause', 'Пауза')}">${t('btn_item_pause', 'Пауза')}</button>
+            <button type="button" class="m3-btn m3-btn--outlined m3-btn--small q-cancel-btn md-ripple" data-item-id="${item.id}" title="${t('btn_item_cancel', 'Отмена')}">${t('btn_item_cancel', 'Отмена')}</button>
           ` : ''}
           ${item.status === 'pending' ? `
-            <button type="button" class="m3-btn m3-btn--tonal m3-btn--small q-pause-btn md-ripple" data-item-id="${item.id}" title="Поставить на паузу">Пауза</button>
+            <button type="button" class="m3-btn m3-btn--tonal m3-btn--small q-pause-btn md-ripple" data-item-id="${item.id}" title="${t('btn_item_pause', 'Пауза')}">${t('btn_item_pause', 'Пауза')}</button>
           ` : ''}
           ${item.status === 'paused' || item.status === 'error' || item.status === 'cancelled' ? `
-            <button type="button" class="m3-btn m3-btn--tonal m3-btn--small q-resume-btn md-ripple" data-item-id="${item.id}" title="Возобновить скачивание">Старт</button>
+            <button type="button" class="m3-btn m3-btn--tonal m3-btn--small q-resume-btn md-ripple" data-item-id="${item.id}" title="${t('btn_item_resume', 'Продолжить')}">${t('btn_item_resume', 'Продолжить')}</button>
           ` : ''}
           ${item.status === 'done' ? `
-            <button type="button" class="m3-btn m3-btn--tonal m3-btn--small q-open-folder-btn md-ripple" data-folder="${item.out_dir}" title="Открыть папку с файлом">Папка</button>
+            <button type="button" class="m3-btn m3-btn--tonal m3-btn--small q-open-folder-btn md-ripple" data-folder="${item.out_dir}" title="${t('btn_item_folder', 'Папка')}">${t('btn_item_folder', 'Папка')}</button>
           ` : ''}
-          <button type="button" class="m3-icon-btn m3-icon-btn--small q-delete-btn md-ripple" data-item-id="${item.id}" title="Удалить из очереди">
+          <button type="button" class="m3-icon-btn m3-icon-btn--small q-delete-btn md-ripple" data-item-id="${item.id}" title="${t('btn_item_delete', 'Удалить')}">
             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
@@ -2845,6 +3417,14 @@ handleUrlInputChange();
 
 // Initial fetch of Queue on application start
 fetchQueue();
+
+// Initialize UI Language
+applyLanguage(currentLanguage, false);
+
+// Silent background check for YT Deck application updates (after startup settling)
+setTimeout(() => {
+  checkAppUpdate(false);
+}, 3500);
 
 // ==========================================
 // 16. PREVIEW CONTROLLER (Documentation & Showcase)

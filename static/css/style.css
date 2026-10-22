@@ -360,6 +360,30 @@ body {
   box-shadow: 0 0 8px var(--md-sys-color-error);
 }
 
+.lang-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--md-sys-typescale-font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: var(--md-sys-shape-corner-full);
+  background-color: var(--md-sys-color-surface-container-high);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  color: var(--md-sys-color-on-surface);
+  cursor: pointer;
+  transition: all var(--md-sys-motion-duration-short) ease;
+  letter-spacing: 0.8px;
+  user-select: none;
+}
+
+.lang-pill:hover {
+  background-color: var(--md-sys-color-surface-container-highest);
+  border-color: var(--md-sys-color-primary);
+  color: var(--md-sys-color-primary);
+}
+
 .m3-icon-btn {
   width: 40px;
   height: 40px;
@@ -2091,6 +2115,25 @@ body {
   font-size: 11.5px;
   color: var(--md-sys-color-primary);
   line-height: 1.4;
+}
+
+.update-status-line a {
+  color: var(--md-sys-color-primary);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.update-status-line a:hover {
+  opacity: 0.85;
+}
+
+.update-badge--new {
+  background-color: var(--md-sys-color-tertiary-container);
+  color: var(--md-sys-color-on-tertiary-container);
 }
 
 .m3-badge--warn {
