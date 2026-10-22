@@ -34,7 +34,7 @@ def scan_existing_installation():
     Scans the system for an existing YT Deck installation via Windows Registry and standard locations.
     Returns metadata dict: {'found': bool, 'path': str, 'version': str}.
     """
-    info = {"found": False, "path": "", "version": "2.5.1"}
+    info = {"found": False, "path": "", "version": "2.5.2"}
     if sys.platform == "win32":
         try:
             import winreg
@@ -93,7 +93,7 @@ def create_windows_shortcut(target_exe, shortcut_path, icon_path=None, descripti
         print(f"Error creating shortcut {shortcut_path}: {e}")
 
 
-def register_in_windows_uninstall(target_dir, exe_path, uninstaller_path, version="2.5.1"):
+def register_in_windows_uninstall(target_dir, exe_path, uninstaller_path, version="2.5.2"):
     """
     Registers the application in Windows Registry (HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall)
     so it appears in Windows 10/11 Settings -> Apps & features with official icon and uninstaller.

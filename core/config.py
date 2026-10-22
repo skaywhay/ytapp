@@ -45,7 +45,7 @@ if os.path.isdir(LOCAL_YTDLP_DIR) and LOCAL_YTDLP_DIR not in sys.path:
 TEMP_COOKIES_DIR = os.path.join(USER_DATA_DIR, "temp_cookies")
 os.makedirs(TEMP_COOKIES_DIR, exist_ok=True)
 
-APP_VERSION = "2.5.1"
+APP_VERSION = "2.5.2"
 GITHUB_REPO = "skaywhay/ytapp"
 
 CONFIG_FILE = os.path.join(USER_DATA_DIR, "config.json")

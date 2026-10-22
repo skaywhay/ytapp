@@ -124,7 +124,7 @@ if sys.platform == 'darwin':
         bundle_identifier='com.ytdeck.app',
         info_plist={
             'NSHighResolutionCapable': 'True',
-            'CFBundleShortVersionString': '2.5.1',
+            'CFBundleShortVersionString': '2.5.2',
             'CFBundleName': 'YT Deck',
         },
     )

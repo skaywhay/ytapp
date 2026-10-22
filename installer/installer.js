@@ -92,7 +92,7 @@ window.addEventListener('pywebviewready', async () => {
         existingInstallBanner.style.display = 'flex';
       }
       if (existingBannerDesc && existing.path) {
-        existingBannerDesc.textContent = `Обнаружена установленная копия (версия ${existing.version || '2.5.1'}) в папке: ${existing.path}. Нажмите «Переустановить» для обновления файлов.`;
+        existingBannerDesc.textContent = `Обнаружена установленная копия (версия ${existing.version || '2.5.2'}) в папке: ${existing.path}. Нажмите «Переустановить» для обновления файлов.`;
       }
       if (stepOptionsTitle) stepOptionsTitle.textContent = 'Переустановка или обновление';
       if (stepOptionsDesc) stepOptionsDesc.textContent = 'Приложение уже установлено в системе. Вы можете выполнить обновление или чистую переустановку.';
