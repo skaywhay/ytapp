@@ -3435,6 +3435,9 @@ function initPreviewMode() {
   const preview = params.get('preview');
   if (!preview) return;
   try {
+    const lang = params.get('lang') || 'ru';
+    applyLanguage(lang, false);
+    const isEn = lang === 'en';
 
   const sampleThumb = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
@@ -3487,18 +3490,18 @@ function initPreviewMode() {
     currentDurationSec = 314;
     currentEstimatedSize = 1488977920;
 
-    setProbeBtnState('success', 'Найдено!');
+    setProbeBtnState('success', isEn ? 'Found!' : 'Найдено!');
 
     if (trackThumb) trackThumb.src = sampleThumb;
     if (trackTitle) trackTitle.textContent = currentTitle;
     if (trackUploader) trackUploader.textContent = currentUploader;
     if (trackDuration) trackDuration.textContent = currentDuration;
     if (trackViews) {
-      trackViews.textContent = '112 450 000 просмотров';
+      trackViews.textContent = isEn ? '112,450,000 views' : '112 450 000 просмотров';
       trackViews.hidden = false;
     }
     if (trackDate) {
-      trackDate.textContent = '14 окт. 2023 г.';
+      trackDate.textContent = isEn ? 'Oct 14, 2023' : '14 окт. 2023 г.';
       trackDate.hidden = false;
     }
 
@@ -3529,12 +3532,12 @@ function initPreviewMode() {
 
     // Fill Audio Tracks
     availableAudioTracks = [
-      { title: 'English (Original Audio)', formats: [{ format_id: '251', label: 'Opus 160 kbps', size_h: '6.2 MB' }] },
-      { title: 'Русский (Полный дубляж)', formats: [{ format_id: '251-ru', label: 'Opus 160 kbps', size_h: '6.1 MB' }] },
-      { title: 'Español (Doblaje oficial)', formats: [{ format_id: '251-es', label: 'Opus 160 kbps', size_h: '6.0 MB' }] }
+      { title: isEn ? 'English (Original Audio)' : 'English (Оригинал)', formats: [{ format_id: '251', label: 'Opus 160 kbps', size_h: '6.2 MB' }] },
+      { title: isEn ? 'Russian (Full Dub)' : 'Русский (Полный дубляж)', formats: [{ format_id: '251-ru', label: 'Opus 160 kbps', size_h: '6.1 MB' }] },
+      { title: isEn ? 'Spanish (Official Dub)' : 'Español (Doblaje oficial)', formats: [{ format_id: '251-es', label: 'Opus 160 kbps', size_h: '6.0 MB' }] }
     ];
     if (audioTrackWrap) audioTrackWrap.hidden = false;
-    if (audioTrackBadge) audioTrackBadge.textContent = '3 дубляжа';
+    if (audioTrackBadge) audioTrackBadge.textContent = isEn ? '3 audio dubs' : '3 дубляжа';
     if (audioTrackSelect) {
       audioTrackSelect.innerHTML = '';
       availableAudioTracks.forEach((t, i) => {
@@ -3546,7 +3549,7 @@ function initPreviewMode() {
       updateCustomDropdown(audioTrackSelect);
     }
 
-    fillSelect(audioSelect, [{ format_id: '251', label: 'Opus 160 kbps (Высокое качество)', size_h: '6.2 MB' }], (f) => `${f.label} · ${f.size_h}`);
+    fillSelect(audioSelect, [{ format_id: '251', label: isEn ? 'Opus 160 kbps (High Quality)' : 'Opus 160 kbps (Высокое качество)', size_h: '6.2 MB' }], (f) => `${f.label} · ${f.size_h}`);
 
     updateSimpleQualityDropdown('both');
 
@@ -3603,7 +3606,7 @@ function initPreviewMode() {
           downloaded: '',
           total: '',
           eta: '',
-          stage_text: 'Сведение через FFmpeg...',
+          stage_text: isEn ? 'Muxing with FFmpeg…' : 'Сведение через FFmpeg...',
           mode: 'audio',
           audio_codec: 'flac',
           duration: '07:22',

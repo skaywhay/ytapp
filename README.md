@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/hero_preview.png" alt="YT Deck Desktop Interface (Material Design 3 Expressive, Crimson Monet Palette)" width="950">
+  <img src="assets/screenshots/en/hero_preview.png" alt="YT Deck Desktop Interface (Material Design 3 Expressive, Crimson Monet Palette)" width="950">
 </p>
 
 ---
@@ -52,21 +52,21 @@ Unlike standard command-line wrappers or outdated GUI utilities, YT Deck deliver
 Lossless precision trimming before download starts. Drag start/end handles or enter exact HH:MM:SS timestamps to fetch only the requested portion, bypassing multi-gigabyte container downloads.
 
 <p align="center">
-  <img src="assets/screenshots/trim_editor.png" alt="Interactive Timecode Trimming with Dual-Range Slider" width="900">
+  <img src="assets/screenshots/en/trim_editor.png" alt="Interactive Timecode Trimming with Dual-Range Slider" width="900">
 </p>
 
 ### Queue Manager & Bandwidth Orchestration
 Concurrent stream downloads with real-time speed metrics, remaining size counters, dynamic ETA, and per-item priority scheduling (High / Normal / Low).
 
 <p align="center">
-  <img src="assets/screenshots/queue_manager.png" alt="Queue Manager with Multi-Stream Bandwidth Orchestration" width="900">
+  <img src="assets/screenshots/en/queue_manager.png" alt="Queue Manager with Multi-Stream Bandwidth Orchestration" width="900">
 </p>
 
 ### Material You & Monet Palette Personalization
 Built on Google Material Design 3 guidelines with 7 accent palettes (YouTube Crimson, Sunset Amber, Ocean Azure, Emerald Forest, Electric Violet, Sunset Rose, and Mint Teal) and full Dark / Light / System theme support.
 
 <p align="center">
-  <img src="assets/screenshots/settings_monet.png" alt="Settings View with Monet Dynamic Color Swatches" width="900">
+  <img src="assets/screenshots/en/settings_monet.png" alt="Settings View with Monet Dynamic Color Swatches" width="900">
 </p>
 
 ### Material Design 3 & Monet Engine

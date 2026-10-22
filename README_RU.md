@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/screenshots/hero_preview.png" alt="Интерфейс YT Deck (Material Design 3 Expressive, палитра YouTube Crimson)" width="950">
+  <img src="assets/screenshots/ru/hero_preview.png" alt="Интерфейс YT Deck (Material Design 3 Expressive, палитра YouTube Crimson)" width="950">
 </p>
 
 ---
@@ -52,21 +52,21 @@
 Локальная обрезка фрагментов без потерь качества до начала полной загрузки. Передвигайте маркеры начала и конца или введите точный диапазон ЧЧ:ММ:СС — приложение выкачает только нужный отрезок, экономя гигабайты трафика.
 
 <p align="center">
-  <img src="assets/screenshots/trim_editor.png" alt="Интерактивная обрезка видео по таймкодам" width="900">
+  <img src="assets/screenshots/ru/trim_editor.png" alt="Интерактивная обрезка видео по таймкодам" width="900">
 </p>
 
 ### Диспетчер очереди и приоритизация потоков
 Параллельная или последовательная загрузка с отображением реальной скорости (МБ/с), таймера ETA, скачанного объёма и распределением приоритетов (Высокий / Обычный / Низкий).
 
 <p align="center">
-  <img src="assets/screenshots/queue_manager.png" alt="Диспетчер очереди задач с балансировкой скорости" width="900">
+  <img src="assets/screenshots/ru/queue_manager.png" alt="Диспетчер очереди задач с балансировкой скорости" width="900">
 </p>
 
 ### Персонализация Material You и палитры Monet
 Интерфейс адаптирован под рекомендации Google Material Design 3 с 7 динамическими акцентными палитрами (YouTube Crimson, Sunset Amber, Ocean Azure, Emerald Forest, Electric Violet, Sunset Rose и Mint Teal), а также поддержкой Тёмной, Светлой и Автоматической системной тем.
 
 <p align="center">
-  <img src="assets/screenshots/settings_monet.png" alt="Настройки темы и акцентных палитр Monet" width="900">
+  <img src="assets/screenshots/ru/settings_monet.png" alt="Настройки темы и акцентных палитр Monet" width="900">
 </p>
 
 ---
