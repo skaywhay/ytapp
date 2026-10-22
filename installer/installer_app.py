@@ -7,8 +7,10 @@ import os
 import sys
 import time
 import shutil
+import zipfile
 import subprocess
 import threading
+import urllib.request
 from pathlib import Path
 
 # Embedded resources resolution for PyInstaller
@@ -142,13 +144,14 @@ class InstallerApi:
 
     def start_install(self, options):
         target_dir = options.get("target_dir") or get_default_target_dir()
+        install_ffmpeg = options.get("install_ffmpeg", True)
         create_desktop = options.get("create_desktop_shortcut", True)
         create_startmenu = options.get("create_start_menu_shortcut", True)
         register_app = options.get("register_app", True)
 
         threading.Thread(
             target=self._run_install_worker,
-            args=(target_dir, create_desktop, create_startmenu, register_app),
+            args=(target_dir, install_ffmpeg, create_desktop, create_startmenu, register_app),
             daemon=True
         ).start()
 
@@ -164,7 +167,46 @@ class InstallerApi:
             safe_err = error_msg.replace("'", "\\'")
             win.evaluate_js(f"window.onInstallationFinished({'true' if success else 'false'}, '{safe_err}');")
 
-    def _run_install_worker(self, target_dir, create_desktop, create_startmenu, register_app):
+    def _download_and_extract_ffmpeg(self, dest_bin_dir):
+        url = "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"
+        temp_zip = os.path.join(dest_bin_dir, "ffmpeg_download.tmp")
+        try:
+            self._set_progress(45, "Загрузка медиакомпонентов FFmpeg с серверов GitHub...")
+            req = urllib.request.Request(url, headers={"User-Agent": "YT-Deck-Installer"})
+            with urllib.request.urlopen(req, timeout=90) as resp, open(temp_zip, "wb") as f_out:
+                total_len = resp.headers.get("Content-Length")
+                total_bytes = int(total_len) if total_len and total_len.isdigit() else 0
+                downloaded = 0
+                chunk_size = 1024 * 1024
+                while True:
+                    chunk = resp.read(chunk_size)
+                    if not chunk:
+                        break
+                    f_out.write(chunk)
+                    downloaded += len(chunk)
+                    if total_bytes > 0:
+                        pct = int(45 + (downloaded / total_bytes) * 15)
+                        mb_done = downloaded / (1024 * 1024)
+                        mb_total = total_bytes / (1024 * 1024)
+                        self._set_progress(pct, f"Загрузка FFmpeg: {mb_done:.1f} МБ из {mb_total:.1f} МБ...")
+
+            self._set_progress(62, "Распаковка компонентов FFmpeg...")
+            with zipfile.ZipFile(temp_zip, "r") as zf:
+                for member in zf.namelist():
+                    lower_name = member.lower()
+                    if lower_name.endswith("ffmpeg.exe") or lower_name.endswith("ffprobe.exe"):
+                        base_name = os.path.basename(member)
+                        target = os.path.join(dest_bin_dir, base_name)
+                        with zf.open(member) as source, open(target, "wb") as target_file:
+                            shutil.copyfileobj(source, target_file)
+        finally:
+            if os.path.isfile(temp_zip):
+                try:
+                    os.remove(temp_zip)
+                except Exception:
+                    pass
+
+    def _run_install_worker(self, target_dir, install_ffmpeg, create_desktop, create_startmenu, register_app):
         try:
             # Terminate existing running YT_Deck processes to avoid WinError 5 lock
             if sys.platform == "win32":
@@ -184,7 +226,7 @@ class InstallerApi:
             os.makedirs(target_dir, exist_ok=True)
             time.sleep(0.2)
 
-            self._set_progress(30, "Копирование исполняемых компонентов...")
+            self._set_progress(25, "Копирование исполняемых компонентов...")
             # Locate payload YT_Deck.exe
             exe_source = None
             candidates = [
@@ -220,6 +262,35 @@ class InstallerApi:
                 shutil.copy2(icon_source, dest_icon)
             else:
                 dest_icon = dest_exe
+
+            # Install FFmpeg and utility binaries if requested
+            if install_ffmpeg:
+                dest_bin_dir = os.path.join(target_dir, "bin")
+                os.makedirs(dest_bin_dir, exist_ok=True)
+                self._set_progress(35, "Установка медиакомпонентов FFmpeg...")
+
+                bin_candidates = [
+                    os.path.join(INSTALLER_DIR, "payload", "bin"),
+                    os.path.join(INSTALLER_DIR, "bin"),
+                    os.path.join(PROJECT_ROOT, "bin"),
+                ]
+
+                found_ffmpeg = False
+                for b_name in ["ffmpeg.exe", "ffprobe.exe", "qjs.exe"]:
+                    for c_dir in bin_candidates:
+                        src_bin = os.path.join(c_dir, b_name)
+                        if os.path.isfile(src_bin):
+                            shutil.copy2(src_bin, os.path.join(dest_bin_dir, b_name))
+                            if b_name == "ffmpeg.exe":
+                                found_ffmpeg = True
+                            break
+
+                # If ffmpeg.exe was not bundled offline, download it automatically
+                if not found_ffmpeg:
+                    try:
+                        self._download_and_extract_ffmpeg(dest_bin_dir)
+                    except Exception as e_dl:
+                        print(f"Warning: automatic FFmpeg download failed: {e_dl}")
 
             self._set_progress(60, "Создание системного деинсталлятора...")
             # Create uninstaller script

@@ -20,6 +20,12 @@ if os.path.isfile('../YT_Deck.exe'):
 elif os.path.isfile('../dist/YT_Deck.exe'):
     datas.append(('../dist/YT_Deck.exe', 'payload'))
 
+# Include bundled FFmpeg and utility binaries inside installer payload
+for b_name in ['ffmpeg.exe', 'ffprobe.exe', 'qjs.exe']:
+    b_path = os.path.join('..', 'bin', b_name)
+    if os.path.isfile(b_path):
+        datas.append((b_path, 'payload/bin'))
+
 for pkg in ['webview', 'clr_loader', 'pythonnet']:
     try:
         datas += collect_data_files(pkg)

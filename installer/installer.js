@@ -1,6 +1,7 @@
 // Installer client controller
 const targetPathInput = document.getElementById('target-path');
 const browseBtn = document.getElementById('browse-btn');
+const optFfmpeg = document.getElementById('opt-ffmpeg');
 const optDesktop = document.getElementById('opt-desktop');
 const optStartmenu = document.getElementById('opt-startmenu');
 const optRegister = document.getElementById('opt-register');
@@ -144,6 +145,7 @@ if (installBtn) {
     try {
       await window.pywebview.api.start_install({
         target_dir: targetDir,
+        install_ffmpeg: optFfmpeg ? optFfmpeg.checked : true,
         create_desktop_shortcut: optDesktop.checked,
         create_start_menu_shortcut: optStartmenu.checked,
         register_app: optRegister.checked,
