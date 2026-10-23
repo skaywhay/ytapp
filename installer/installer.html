@@ -18,7 +18,7 @@
       </div>
       <div class="brand-text">
         <h1 class="brand-title">YT Deck</h1>
-        <span class="brand-version">Версия 2.5.2</span>
+        <span id="brand-version-label" class="brand-version">Версия 2.5.2</span>
       </div>
     </header>
 
@@ -31,14 +31,12 @@
         <div id="existing-install-banner" class="m3-card existing-banner" style="display: none;" hidden>
           <div class="existing-banner-icon">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"></circle>
-              <line x1="12" y1="8" x2="12" y2="12"></line>
-              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
             </svg>
           </div>
           <div class="existing-banner-text">
-            <span class="existing-banner-title">Обнаружена установленная копия программы</span>
-            <span id="existing-banner-desc" class="existing-banner-desc">Приложение уже установлено в этой системе. Вы можете выполнить чистую переустановку или обновление.</span>
+            <span id="existing-banner-title" class="existing-banner-title">Доступно обновление YT Deck</span>
+            <span id="existing-banner-desc" class="existing-banner-desc"></span>
           </div>
         </div>
 
@@ -48,7 +46,7 @@
         </div>
 
         <div class="m3-card config-card">
-          <label class="field-label" for="target-path">Папка установки</label>
+          <label id="target-path-label" class="field-label" for="target-path">Папка установки</label>
           <div class="path-picker-row">
             <input type="text" id="target-path" class="m3-input" spellcheck="false" autocomplete="off" />
             <button type="button" id="browse-btn" class="m3-btn m3-btn--outlined">
@@ -58,29 +56,29 @@
               <span>Обзор...</span>
             </button>
           </div>
-          <span class="path-hint">Установка выполняется для текущего пользователя без необходимости прав администратора.</span>
+          <span id="target-path-hint" class="path-hint">Установка выполняется для текущего пользователя без необходимости прав администратора.</span>
         </div>
 
         <div class="options-group">
           <label class="m3-checkbox-label">
             <input type="checkbox" id="opt-ffmpeg" checked />
             <span class="m3-checkbox-custom"></span>
-            <span class="checkbox-text">Установить медиаконвертер FFmpeg (для склейки видео 1080p, 4K и звука)</span>
+            <span id="opt-ffmpeg-text" class="checkbox-text">Установить медиаконвертер FFmpeg (для склейки видео 1080p, 4K и звука)</span>
           </label>
           <label class="m3-checkbox-label">
             <input type="checkbox" id="opt-desktop" checked />
             <span class="m3-checkbox-custom"></span>
-            <span class="checkbox-text">Создать ярлык на рабочем столе</span>
+            <span id="opt-desktop-text" class="checkbox-text">Создать ярлык на рабочем столе</span>
           </label>
           <label class="m3-checkbox-label">
             <input type="checkbox" id="opt-startmenu" checked />
             <span class="m3-checkbox-custom"></span>
-            <span class="checkbox-text">Добавить в меню «Пуск» Windows</span>
+            <span id="opt-startmenu-text" class="checkbox-text">Добавить в меню «Пуск» Windows</span>
           </label>
           <label class="m3-checkbox-label">
             <input type="checkbox" id="opt-register" checked />
             <span class="m3-checkbox-custom"></span>
-            <span class="checkbox-text">Зарегистрировать в списке установленных программ Windows</span>
+            <span id="opt-register-text" class="checkbox-text">Зарегистрировать в списке установленных программ Windows</span>
           </label>
         </div>
       </section>
@@ -88,8 +86,8 @@
       <!-- STEP 2: INSTALLING / PROGRESS -->
       <section id="step-progress" class="installer-step">
         <div class="step-headline">
-          <h2>Идёт установка...</h2>
-          <p class="step-desc">Пожалуйста, подождите, пока необходимые файлы копируются в систему.</p>
+          <h2 id="step-progress-title">Идёт установка...</h2>
+          <p id="step-progress-desc" class="step-desc">Пожалуйста, подождите, пока необходимые файлы копируются в систему.</p>
         </div>
 
         <div class="progress-container">
@@ -112,15 +110,15 @@
           </svg>
         </div>
         <div class="step-headline text-center">
-          <h2>Установка завершена!</h2>
-          <p class="step-desc">Приложение YT Deck готово к использованию.</p>
+          <h2 id="step-finished-title">Установка завершена!</h2>
+          <p id="step-finished-desc" class="step-desc">Приложение YT Deck готово к использованию.</p>
         </div>
 
         <div class="finish-options">
           <label class="m3-checkbox-label center-label">
             <input type="checkbox" id="opt-launch" checked />
             <span class="m3-checkbox-custom"></span>
-            <span class="checkbox-text">Запустить YT Deck прямо сейчас</span>
+            <span id="opt-launch-text" class="checkbox-text">Запустить YT Deck прямо сейчас</span>
           </label>
         </div>
       </section>

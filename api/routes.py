@@ -44,7 +44,12 @@ from core.queue_manager import (
     JOBS,
     JOBS_LOCK,
 )
-from services.updater import update_ytdlp_engine, download_ffmpeg_engine, check_app_update
+from services.updater import (
+    update_ytdlp_engine,
+    download_ffmpeg_engine,
+    check_app_update,
+    download_and_launch_installer,
+)
 
 api_bp = Blueprint("api", __name__)
 
@@ -143,6 +148,15 @@ def download_ffmpeg_endpoint():
 @api_bp.route("/api/app_update", methods=["GET"])
 def get_app_update():
     res = check_app_update()
+    status_code = 200 if res.get("ok") else 500
+    return jsonify(res), status_code
+
+
+@api_bp.route("/api/app_update/apply", methods=["POST"])
+def apply_app_update():
+    data = request.get_json(silent=True) or {}
+    asset_url = data.get("asset_url")
+    res = download_and_launch_installer(asset_url)
     status_code = 200 if res.get("ok") else 500
     return jsonify(res), status_code
 

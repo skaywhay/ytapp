@@ -22,6 +22,9 @@ else:
 PROJECT_ROOT = os.path.abspath(os.path.join(INSTALLER_DIR, ".."))
 
 
+INSTALLER_VERSION = "2.5.2"
+
+
 def get_default_target_dir():
     localapp = os.environ.get("LOCALAPPDATA")
     if not localapp:
@@ -32,9 +35,16 @@ def get_default_target_dir():
 def scan_existing_installation():
     """
     Scans the system for an existing YT Deck installation via Windows Registry and standard locations.
-    Returns metadata dict: {'found': bool, 'path': str, 'version': str}.
+    Returns metadata dict: {'found': bool, 'path': str, 'installed_version': str, 'installer_version': str, 'is_update': bool}.
     """
-    info = {"found": False, "path": "", "version": "2.5.2"}
+    info = {
+        "found": False,
+        "path": "",
+        "installed_version": "",
+        "version": INSTALLER_VERSION,
+        "installer_version": INSTALLER_VERSION,
+        "is_update": False,
+    }
     if sys.platform == "win32":
         try:
             import winreg
@@ -44,8 +54,10 @@ def scan_existing_installation():
                 ver, _ = winreg.QueryValueEx(key, "DisplayVersion")
                 if loc and (os.path.isdir(loc) or os.path.isfile(os.path.join(loc, "YT_Deck.exe"))):
                     info["found"] = True
+                    info["is_update"] = True
                     info["path"] = os.path.normpath(loc)
                     if ver:
+                        info["installed_version"] = str(ver)
                         info["version"] = str(ver)
                     return info
         except Exception:
@@ -54,6 +66,7 @@ def scan_existing_installation():
     default_dir = get_default_target_dir()
     if os.path.isfile(os.path.join(default_dir, "YT_Deck.exe")):
         info["found"] = True
+        info["is_update"] = True
         info["path"] = os.path.normpath(default_dir)
         return info
 
@@ -148,10 +161,11 @@ class InstallerApi:
         create_desktop = options.get("create_desktop_shortcut", True)
         create_startmenu = options.get("create_start_menu_shortcut", True)
         register_app = options.get("register_app", True)
+        is_update = options.get("is_update", False)
 
         threading.Thread(
             target=self._run_install_worker,
-            args=(target_dir, install_ffmpeg, create_desktop, create_startmenu, register_app),
+            args=(target_dir, install_ffmpeg, create_desktop, create_startmenu, register_app, is_update),
             daemon=True
         ).start()
 
@@ -206,8 +220,10 @@ class InstallerApi:
                 except Exception:
                     pass
 
-    def _run_install_worker(self, target_dir, install_ffmpeg, create_desktop, create_startmenu, register_app):
+    def _run_install_worker(self, target_dir, install_ffmpeg, create_desktop, create_startmenu, register_app, is_update=False):
         try:
+            verb = "Обновление" if is_update else "Установка"
+
             # Terminate existing running YT_Deck processes to avoid WinError 5 lock
             if sys.platform == "win32":
                 self._set_progress(5, "Остановка активных процессов YT Deck...")
@@ -222,11 +238,11 @@ class InstallerApi:
                     pass
                 time.sleep(0.3)
 
-            self._set_progress(15, "Подготовка директории установки...")
+            self._set_progress(15, "Проверка рабочей директории..." if is_update else "Подготовка директории установки...")
             os.makedirs(target_dir, exist_ok=True)
             time.sleep(0.2)
 
-            self._set_progress(25, "Копирование исполняемых компонентов...")
+            self._set_progress(25, f"{verb} компонентов YT Deck...")
             # Locate payload YT_Deck.exe
             exe_source = None
             candidates = [
@@ -267,7 +283,7 @@ class InstallerApi:
             if install_ffmpeg:
                 dest_bin_dir = os.path.join(target_dir, "bin")
                 os.makedirs(dest_bin_dir, exist_ok=True)
-                self._set_progress(35, "Установка медиакомпонентов FFmpeg...")
+                self._set_progress(35, f"{verb} медиаконвертера FFmpeg...")
 
                 bin_candidates = [
                     os.path.join(INSTALLER_DIR, "payload", "bin"),
@@ -292,7 +308,7 @@ class InstallerApi:
                     except Exception as e_dl:
                         print(f"Warning: automatic FFmpeg download failed: {e_dl}")
 
-            self._set_progress(60, "Создание системного деинсталлятора...")
+            self._set_progress(60, f"{verb} системного деинсталлятора...")
             # Create uninstaller script
             uninstaller_cmd = os.path.join(target_dir, "uninstall.cmd")
             uninstall_content = f"""@echo off
@@ -327,7 +343,7 @@ pause
             with open(uninstaller_cmd, "w", encoding="utf-8") as f:
                 f.write(uninstall_content)
 
-            self._set_progress(75, "Создание ярлыков...")
+            self._set_progress(75, f"{verb} ярлыков запуска..." if is_update else "Создание ярлыков...")
             if create_desktop:
                 desktop_dir = Path.home() / "Desktop"
                 if desktop_dir.is_dir():
@@ -342,10 +358,10 @@ pause
                     create_windows_shortcut(dest_exe, start_lnk, dest_icon, "YT Deck — Загрузчик YouTube")
 
             if register_app:
-                self._set_progress(90, "Регистрация приложения в Windows...")
-                register_in_windows_uninstall(target_dir, dest_exe, uninstaller_cmd)
+                self._set_progress(90, f"{verb} сведений о версии в Windows...")
+                register_in_windows_uninstall(target_dir, dest_exe, uninstaller_cmd, version=INSTALLER_VERSION)
 
-            self._set_progress(100, "Установка успешно завершена!")
+            self._set_progress(100, f"{verb} успешно завершено!" if is_update else "Установка успешно завершена!")
             time.sleep(0.4)
             self._notify_finished(True)
         except Exception as e:
@@ -394,8 +410,12 @@ def run_installer():
     window_holder = [None]
     api = InstallerApi(window_holder)
 
+    is_update_flag = "/update" in sys.argv or "--update" in sys.argv
+    initial_info = scan_existing_installation()
+    initial_title = "Обновление YT Deck" if (is_update_flag or initial_info.get("found")) else "Установка YT Deck"
+
     window = webview.create_window(
-        title="Установка YT Deck",
+        title=initial_title,
         html=html_content,
         js_api=api,
         width=680,

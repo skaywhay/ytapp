@@ -1,19 +1,33 @@
 // Installer client controller
 const targetPathInput = document.getElementById('target-path');
+const targetPathLabel = document.getElementById('target-path-label');
+const targetPathHint = document.getElementById('target-path-hint');
 const browseBtn = document.getElementById('browse-btn');
 const optFfmpeg = document.getElementById('opt-ffmpeg');
+const optFfmpegText = document.getElementById('opt-ffmpeg-text');
 const optDesktop = document.getElementById('opt-desktop');
+const optDesktopText = document.getElementById('opt-desktop-text');
 const optStartmenu = document.getElementById('opt-startmenu');
+const optStartmenuText = document.getElementById('opt-startmenu-text');
 const optRegister = document.getElementById('opt-register');
+const optRegisterText = document.getElementById('opt-register-text');
 const optLaunch = document.getElementById('opt-launch');
+const optLaunchText = document.getElementById('opt-launch-text');
 
+const brandVersionLabel = document.getElementById('brand-version-label');
 const existingInstallBanner = document.getElementById('existing-install-banner');
+const existingBannerTitle = document.getElementById('existing-banner-title');
 const existingBannerDesc = document.getElementById('existing-banner-desc');
 const stepOptionsTitle = document.getElementById('step-options-title');
 const stepOptionsDesc = document.getElementById('step-options-desc');
+const stepProgressTitle = document.getElementById('step-progress-title');
+const stepProgressDesc = document.getElementById('step-progress-desc');
+const stepFinishedTitle = document.getElementById('step-finished-title');
+const stepFinishedDesc = document.getElementById('step-finished-desc');
 const installBtnText = document.getElementById('install-btn-text');
 
-let isReinstall = false;
+let isUpdate = false;
+let targetVersion = '2.5.2';
 
 const stepOptions = document.getElementById('step-options');
 const stepProgress = document.getElementById('step-progress');
@@ -43,11 +57,10 @@ window.updateInstallerProgress = function(percent, statusMessage) {
 window.onInstallationFinished = function(success, errorMsg) {
   if (success) {
     showStep(stepFinished);
-    if (isReinstall) {
-      const finishTitle = document.querySelector('#step-finished h2');
-      if (finishTitle) finishTitle.textContent = 'Переустановка завершена!';
-      const finishDesc = document.querySelector('#step-finished .step-desc');
-      if (finishDesc) finishDesc.textContent = 'Приложение YT Deck успешно обновлено и готово к работе.';
+    if (isUpdate) {
+      if (stepFinishedTitle) stepFinishedTitle.textContent = 'Обновление завершено!';
+      if (stepFinishedDesc) stepFinishedDesc.textContent = `Приложение YT Deck успешно обновлено до версии ${targetVersion} и готово к работе.`;
+      if (optLaunchText) optLaunchText.textContent = 'Запустить обновлённый YT Deck прямо сейчас';
     }
     if (cancelBtn) {
       cancelBtn.hidden = true;
@@ -62,7 +75,7 @@ window.onInstallationFinished = function(success, errorMsg) {
       finishBtn.style.display = 'inline-flex';
     }
   } else {
-    alert('Ошибка при установке: ' + (errorMsg || 'Неизвестная ошибка'));
+    alert((isUpdate ? 'Ошибка при обновлении: ' : 'Ошибка при установке: ') + (errorMsg || 'Неизвестная ошибка'));
     showStep(stepOptions);
     if (cancelBtn) {
       cancelBtn.disabled = false;
@@ -84,19 +97,52 @@ window.addEventListener('pywebviewready', async () => {
     const existing = await window.pywebview.api.check_existing();
     const defaultPath = await window.pywebview.api.get_default_target_dir();
 
-    if (existing && existing.found) {
-      isReinstall = true;
+    if (existing && (existing.found || existing.is_update)) {
+      isUpdate = true;
+      targetVersion = existing.installer_version || '2.5.2';
+      const installedVer = existing.installed_version || existing.version;
+
+      document.title = 'Обновление YT Deck';
+      if (brandVersionLabel) {
+        brandVersionLabel.textContent = `Версия ${targetVersion} (обновление)`;
+      }
+
       if (targetPathInput) targetPathInput.value = existing.path || defaultPath;
+      if (targetPathLabel) targetPathLabel.textContent = 'Папка с установленным приложением';
+      if (targetPathHint) {
+        targetPathHint.textContent = 'Обновление будет установлено в текущую рабочую директорию программы.';
+      }
+
       if (existingInstallBanner) {
         existingInstallBanner.hidden = false;
         existingInstallBanner.style.display = 'flex';
       }
-      if (existingBannerDesc && existing.path) {
-        existingBannerDesc.textContent = `Обнаружена установленная копия (версия ${existing.version || '2.5.2'}) в папке: ${existing.path}. Нажмите «Переустановить» для обновления файлов.`;
+      if (existingBannerTitle) {
+        existingBannerTitle.textContent = 'Доступно обновление YT Deck';
       }
-      if (stepOptionsTitle) stepOptionsTitle.textContent = 'Переустановка или обновление';
-      if (stepOptionsDesc) stepOptionsDesc.textContent = 'Приложение уже установлено в системе. Вы можете выполнить обновление или чистую переустановку.';
-      if (installBtnText) installBtnText.textContent = 'Переустановить';
+      if (existingBannerDesc && existing.path) {
+        const currentVerStr = installedVer ? `версия ${installedVer}` : 'предыдущая версия';
+        existingBannerDesc.textContent = `Обнаружена установленная ${currentVerStr} в папке: ${existing.path}. Нажмите «Обновить» для быстрой установки версии ${targetVersion}. Все ваши настройки, загрузки и история будут полностью сохранены.`;
+      }
+
+      if (stepOptionsTitle) stepOptionsTitle.textContent = 'Обновление приложения';
+      if (stepOptionsDesc) {
+        stepOptionsDesc.textContent = 'Обновление компонентов YT Deck до актуальной версии с сохранением всех данных.';
+      }
+      if (installBtnText) installBtnText.textContent = 'Обновить';
+
+      if (optFfmpegText) {
+        optFfmpegText.textContent = 'Обновить медиаконвертер FFmpeg (для склейки видео 1080p, 4K и звука)';
+      }
+      if (optDesktopText) {
+        optDesktopText.textContent = 'Обновить ярлык на рабочем столе';
+      }
+      if (optStartmenuText) {
+        optStartmenuText.textContent = 'Обновить ярлык в меню «Пуск» Windows';
+      }
+      if (optRegisterText) {
+        optRegisterText.textContent = 'Обновить регистрацию в системе Windows';
+      }
     } else {
       if (defaultPath && targetPathInput) {
         targetPathInput.value = defaultPath;
@@ -134,8 +180,15 @@ if (installBtn) {
   installBtn.addEventListener('click', async () => {
     const targetDir = (targetPathInput?.value || '').trim();
     if (!targetDir) {
-      alert('Пожалуйста, укажите папку для установки.');
+      alert(isUpdate ? 'Пожалуйста, укажите папку для обновления.' : 'Пожалуйста, укажите папку для установки.');
       return;
+    }
+
+    if (isUpdate) {
+      if (stepProgressTitle) stepProgressTitle.textContent = 'Идёт обновление...';
+      if (stepProgressDesc) {
+        stepProgressDesc.textContent = 'Пожалуйста, подождите, пока компоненты обновляются до актуальной версии.';
+      }
     }
 
     showStep(stepProgress);
@@ -146,12 +199,13 @@ if (installBtn) {
       await window.pywebview.api.start_install({
         target_dir: targetDir,
         install_ffmpeg: optFfmpeg ? optFfmpeg.checked : true,
-        create_desktop_shortcut: optDesktop.checked,
-        create_start_menu_shortcut: optStartmenu.checked,
-        register_app: optRegister.checked,
+        create_desktop_shortcut: optDesktop ? optDesktop.checked : true,
+        create_start_menu_shortcut: optStartmenu ? optStartmenu.checked : true,
+        register_app: optRegister ? optRegister.checked : true,
+        is_update: isUpdate,
       });
     } catch (err) {
-      alert('Ошибка запуска установки: ' + err.message);
+      alert((isUpdate ? 'Ошибка запуска обновления: ' : 'Ошибка запуска установки: ') + err.message);
       showStep(stepOptions);
       cancelBtn.disabled = false;
       installBtn.disabled = false;

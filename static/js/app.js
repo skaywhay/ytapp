@@ -617,12 +617,13 @@ const I18N = {
     tile_webview_sub: 'Аппаратное ускорение GUI',
 
     checking_updates: 'Проверка обновлений на GitHub…',
-    new_version_available: 'Доступно обновление',
-    download_update: 'Скачать установщик',
+    new_version_available: 'Вышло обновление',
+    download_update: 'Обновить приложение',
+    updating_app: 'Загрузка и запуск обновления…',
     release_notes: 'Список изменений',
     app_up_to_date: 'У вас установлена новейшая версия YT Deck',
-    app_up_to_date_toast: 'У вас установлена актуальная версия YT Deck (',
-    update_available_toast: 'Доступна новая версия YT Deck: ',
+    app_up_to_date_toast: 'У вас установлена новейшая версия YT Deck (',
+    update_available_toast: 'Вышло обновление YT Deck: ',
     update_check_error: 'Ошибка проверки обновлений',
     update_server_error: 'Не удалось связаться с сервером обновлений: ',
     toast_lang_switched: 'Язык переключён на Русский',
@@ -802,12 +803,13 @@ const I18N = {
     tile_webview_sub: 'Hardware-accelerated GUI',
 
     checking_updates: 'Checking GitHub for updates…',
-    new_version_available: 'Update Available',
-    download_update: 'Download Installer',
+    new_version_available: 'New Update Available',
+    download_update: 'Update Application',
+    updating_app: 'Downloading and launching update…',
     release_notes: 'Release Notes',
     app_up_to_date: 'You have the latest version of YT Deck',
     app_up_to_date_toast: 'You are running the latest version of YT Deck (',
-    update_available_toast: 'New version of YT Deck available: ',
+    update_available_toast: 'New update released for YT Deck: ',
     update_check_error: 'Failed to check for updates',
     update_server_error: 'Could not contact update server: ',
     toast_lang_switched: 'Language switched to English',
@@ -1376,7 +1378,7 @@ async function checkAppUpdate(isManual = true) {
     const data = await res.json();
     if (data.ok) {
       if (data.has_update) {
-        showToast(`${t('update_available_toast', 'Доступна новая версия YT Deck: ')}${data.latest_version}`, 'info', 7000);
+        showToast(`${t('update_available_toast', 'Вышло обновление YT Deck: ')}${data.latest_version}`, 'info', 7000);
 
         if (engineAppVerBadge) {
           engineAppVerBadge.className = 'm3-badge update-badge--new font-mono';
@@ -1384,23 +1386,51 @@ async function checkAppUpdate(isManual = true) {
         }
 
         if (appUpdateStatus) {
-          const setupAsset = (data.assets || []).find((a) => a.name && a.name.endsWith('_Setup.exe'));
+          const setupAsset = (data.assets || []).find((a) => a.name && (a.name.endsWith('_Setup.exe') || a.name.endsWith('Setup.exe')));
           const portableAsset = (data.assets || []).find((a) => a.name && a.name.includes('portable.exe'));
           const downloadUrl = setupAsset ? setupAsset.download_url : (portableAsset ? portableAsset.download_url : data.release_url);
 
           appUpdateStatus.innerHTML = `
-            <div><strong>${t('new_version_available', 'Доступно обновление')}: ${data.latest_version}</strong></div>
+            <div><strong>${t('new_version_available', 'Вышло обновление')}: ${data.latest_version}</strong></div>
             <div style="margin-top: 6px; display: flex; gap: 8px; flex-wrap: wrap;">
-              <a href="${downloadUrl}" target="_blank" class="m3-btn m3-btn--tonal m3-btn--small md-ripple" style="text-decoration:none;">
+              <button type="button" id="btn-apply-app-update" class="m3-btn m3-btn--tonal m3-btn--small md-ripple">
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                <span>${t('download_update', 'Скачать установщик')}</span>
-              </a>
+                <span>${t('download_update', 'Обновить приложение')}</span>
+              </button>
               <a href="${data.release_url}" target="_blank" class="m3-btn m3-btn--outlined m3-btn--small md-ripple" style="text-decoration:none;">
                 <span>${t('release_notes', 'Список изменений')}</span>
               </a>
             </div>
           `;
           appUpdateStatus.hidden = false;
+
+          const btnApply = document.getElementById('btn-apply-app-update');
+          if (btnApply) {
+            btnApply.addEventListener('click', async () => {
+              btnApply.disabled = true;
+              btnApply.innerHTML = `<span>${t('updating_app', 'Загрузка и запуск обновления…')}</span>`;
+              try {
+                const resp = await fetch('/api/app_update/apply', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ asset_url: downloadUrl })
+                });
+                const resData = await resp.json();
+                if (resData.ok) {
+                  showToast(resData.message || 'Обновление загружено. Открывается программа обновления...', 'success', 6000);
+                } else {
+                  showToast(resData.error || 'Ошибка загрузки обновления', 'error', 5000);
+                  btnApply.disabled = false;
+                  btnApply.innerHTML = `<span>${t('download_update', 'Обновить приложение')}</span>`;
+                }
+              } catch (err) {
+                showToast('Не удалось запустить обновление автоматически, переход к скачиванию...', 'info', 4000);
+                window.open(downloadUrl, '_blank');
+                btnApply.disabled = false;
+                btnApply.innerHTML = `<span>${t('download_update', 'Обновить приложение')}</span>`;
+              }
+            });
+          }
         }
       } else {
         if (isManual) {

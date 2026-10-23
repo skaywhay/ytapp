@@ -250,3 +250,57 @@ def check_app_update():
             "current_version": f"v{APP_VERSION}",
         }
 
+
+def download_and_launch_installer(asset_url=None):
+    """
+    Downloads the latest release installer to a temporary location and executes it in update mode (/update).
+    """
+    import tempfile
+    from core.config import GITHUB_REPO
+
+    try:
+        if not asset_url:
+            info = check_app_update()
+            if not info.get("ok") or not info.get("assets"):
+                return {"ok": False, "error": "Не удалось получить список файлов релиза с GitHub."}
+            for a in info["assets"]:
+                name = (a.get("name") or "").lower()
+                if name.endswith("_setup.exe") or name.endswith("setup.exe"):
+                    asset_url = a.get("download_url")
+                    break
+            if not asset_url:
+                asset_url = info["assets"][0].get("download_url")
+
+        if not asset_url:
+            return {"ok": False, "error": "Ссылка на установщик обновления не найдена."}
+
+        temp_dir = tempfile.gettempdir()
+        installer_path = os.path.join(temp_dir, "YT_Deck_Setup.exe")
+
+        req = urllib.request.Request(
+            asset_url,
+            headers={"User-Agent": "YT-Deck-Client"}
+        )
+        with urllib.request.urlopen(req, timeout=120) as resp, open(installer_path, "wb") as f_out:
+            shutil.copyfileobj(resp, f_out)
+
+        if not os.path.isfile(installer_path) or os.path.getsize(installer_path) < 1024 * 1024:
+            return {"ok": False, "error": "Загруженный файл обновления поврежден."}
+
+        # Launch the installer in update mode
+        if sys.platform == "win32":
+            subprocess.Popen(
+                [installer_path, "/update"],
+                creationflags=subprocess.DETACHED_PROCESS,
+                close_fds=True,
+            )
+        else:
+            subprocess.Popen([installer_path, "/update"], close_fds=True)
+
+        return {
+            "ok": True,
+            "message": "Обновление успешно загружено. Запуск программы обновления...",
+        }
+    except Exception as e:
+        return {"ok": False, "error": f"Ошибка загрузки обновления: {e}"}
+
