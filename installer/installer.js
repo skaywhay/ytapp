@@ -27,7 +27,7 @@ const stepFinishedDesc = document.getElementById('step-finished-desc');
 const installBtnText = document.getElementById('install-btn-text');
 
 let isUpdate = false;
-let targetVersion = '2.5.2';
+let targetVersion = '2.5.3';
 
 const stepOptions = document.getElementById('step-options');
 const stepProgress = document.getElementById('step-progress');

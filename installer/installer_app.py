@@ -22,7 +22,7 @@ else:
 PROJECT_ROOT = os.path.abspath(os.path.join(INSTALLER_DIR, ".."))
 
 
-INSTALLER_VERSION = "2.5.2"
+INSTALLER_VERSION = "2.5.3"
 
 
 def get_default_target_dir():
