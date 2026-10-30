@@ -13,11 +13,13 @@ from core.config import QUEUE_FILE, DEFAULT_DOWNLOAD_DIR, load_config
 from core.engine import (
     build_base_ydl_opts,
     cleanup_temp_files,
+    cleanup_temp_cookies,
     format_user_friendly_error,
     human_size,
     is_playlist_url,
+    detect_platform,
 )
-from services.media_trim import trim_media_file, parse_time_str
+from services.media_trim import trim_media_file, parse_time_str, format_time_sec
 
 QUEUE = []
 QUEUE_LOCK = threading.RLock()
@@ -235,10 +237,13 @@ def run_queue_download(item_id):
     except Exception as e_space:
         print(f"Disk space check warning: {e_space}")
 
+    platform_info = detect_platform(url)
+    plat_name = platform_info.get("name", "источнику")
+
     emit_socket("progress", {
         "job_id": item_id,
         "status": "starting",
-        "phase_label": "Подключение к YouTube…",
+        "phase_label": f"Подключение к {plat_name}…",
     })
 
     def hook(d):
@@ -310,7 +315,7 @@ def run_queue_download(item_id):
 
         pp = d.get("postprocessor")
         st = d.get("status")
-        if pp in ("Merger", "FFmpegVideoConvertor", "FFmpegExtractAudio", "FixupM3u8"):
+        if pp in ("Merger", "FFmpegVideoConvertor", "FFmpegExtractAudio", "FixupM3u8", "FFmpegEmbedSubtitle"):
             if st == "started":
                 with QUEUE_LOCK:
                     if cur_item:
@@ -318,14 +323,23 @@ def run_queue_download(item_id):
                         cur_item["progress"] = 99
                 record_job_status(item_id, "merging")
 
+                pp_labels = {
+                    "Merger": "Склейка дорожек через FFmpeg…",
+                    "FFmpegVideoConvertor": "Конвертация контейнера через FFmpeg…",
+                    "FFmpegExtractAudio": "Извлечение и сжатие аудиопотока…",
+                    "FixupM3u8": "Сшивание HLS сегментов…",
+                    "FFmpegEmbedSubtitle": "Вшивание субтитров в контейнер…",
+                }
+                stage_text = pp_labels.get(pp, "Постобработка FFmpeg…")
+
                 merging_payload = {
                     "id": item_id,
                     "job_id": item_id,
                     "status": "merging",
                     "percent": 99,
                     "phase": "ffmpeg",
-                    "stage_text": "Склейка дорожек через FFmpeg. Для длинных видео это может занять 1–2 минуты, пожалуйста, подождите…",
-                    "message": "Склейка дорожек через FFmpeg. Для длинных видео это может занять 1–2 минуты, пожалуйста, подождите…",
+                    "stage_text": stage_text,
+                    "message": stage_text,
                 }
                 emit_socket("queue_progress", merging_payload)
                 emit_socket("progress", merging_payload)
@@ -383,20 +397,34 @@ def run_queue_download(item_id):
                 "format": "srt",
             })
 
+    # P0 Optimization: True Byte-Range Trimming via download_ranges
+    # Downloads ONLY the requested timecode segment directly over HTTP Range headers
+    s_sec = parse_time_str(trim_start) if (trim_enabled and trim_start) else 0.0
+    e_sec = parse_time_str(trim_end) if (trim_enabled and trim_end) else None
+    if trim_enabled and (s_sec > 0.0 or (e_sec is not None and e_sec > 0.0)):
+        from yt_dlp.utils import download_range_func
+        ydl_opts["download_ranges"] = download_range_func(None, [(s_sec, e_sec)])
+        ydl_opts["force_keyframes_at_cuts"] = True
+
     try:
         # Normalize format selectors
         v_sel = video_id if (video_id and video_id not in ("best", "auto")) else ""
         a_sel = audio_id if (audio_id and audio_id not in ("best", "auto")) else ""
+        is_progressive = bool(item_copy.get("is_progressive") or item_copy.get("has_audio"))
 
-        # Determine format selection
+        # Determine format selection without forcing unnecessary merges for progressive MP4/HLS streams
         if mode == "both":
-            if v_sel and a_sel:
+            if is_progressive:
+                ydl_opts["format"] = f"{v_sel}/best" if v_sel else "best"
+            elif v_sel and a_sel:
                 ydl_opts["format"] = f"{v_sel}+{a_sel}/{v_sel}+bestaudio/bestvideo+bestaudio/best"
+                ydl_opts["merge_output_format"] = container
             elif v_sel:
                 if container == "mp4":
                     ydl_opts["format"] = f"{v_sel}+bestaudio[ext=m4a]/{v_sel}+bestaudio/best"
                 else:
                     ydl_opts["format"] = f"{v_sel}+bestaudio/best"
+                ydl_opts["merge_output_format"] = container
             else:
                 if container == "mp4":
                     ydl_opts["format"] = "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best"
@@ -404,7 +432,7 @@ def run_queue_download(item_id):
                     ydl_opts["format"] = "bestvideo[ext=webm]+bestaudio[ext=webm]/bestvideo+bestaudio/best"
                 else:
                     ydl_opts["format"] = "bestvideo+bestaudio/best"
-            ydl_opts["merge_output_format"] = container
+                ydl_opts["merge_output_format"] = container
         elif mode == "video":
             ydl_opts["format"] = f"{v_sel}/bestvideo/best" if v_sel else "bestvideo/best"
         elif mode == "audio":
@@ -444,20 +472,22 @@ def run_queue_download(item_id):
         if not os.path.exists(final_path):
             final_path = filename
 
-        # Apply local timecode trim safely via ffmpeg after native download
+        # Apply local timecode trim with real-time FFmpeg progress callback (P1 Fix for 99% freeze)
         if trim_enabled and (trim_start or trim_end):
-            trim_payload = {
-                "id": item_id,
-                "job_id": item_id,
-                "status": "merging",
-                "percent": 99,
-                "phase": "ffmpeg",
-                "stage_text": "Точная обрезка клипа через FFmpeg…",
-                "message": "Точная обрезка клипа через FFmpeg…",
-            }
-            emit_socket("queue_progress", trim_payload)
-            emit_socket("progress", trim_payload)
-            final_path = trim_media_file(final_path, trim_start, trim_end)
+            def on_trim_progress(pct, cur, tot):
+                trim_payload = {
+                    "id": item_id,
+                    "job_id": item_id,
+                    "status": "merging",
+                    "percent": round(pct, 1),
+                    "phase": "ffmpeg",
+                    "stage_text": f"Точная обрезка FFmpeg: {round(pct)}% ({format_time_sec(cur)} / {format_time_sec(tot)})",
+                    "message": f"Точная обрезка FFmpeg: {round(pct)}% ({format_time_sec(cur)} / {format_time_sec(tot)})",
+                }
+                emit_socket("queue_progress", trim_payload)
+                emit_socket("progress", trim_payload)
+
+            final_path = trim_media_file(final_path, trim_start, trim_end, progress_callback=on_trim_progress)
 
         with QUEUE_LOCK:
             cur_item = next((it for it in QUEUE if it["id"] == item_id), None)
@@ -502,7 +532,7 @@ def run_queue_download(item_id):
             "message": "Загрузка отменена пользователем",
         })
     except Exception as e:
-        err_msg = format_user_friendly_error(str(e))
+        err_msg = format_user_friendly_error(str(e), url=url)
         with QUEUE_LOCK:
             cur_item = next((it for it in QUEUE if it["id"] == item_id), None)
             if cur_item:
@@ -518,6 +548,9 @@ def run_queue_download(item_id):
             "status": "error",
             "error": err_msg,
         })
+    finally:
+        # P0 Requirement: Guaranteed cleanup of shadow cookies and DPAPI keyring
+        cleanup_temp_cookies()
 
 
 def enqueue_single_item(params, priority="normal", insert_first=False):
@@ -534,12 +567,16 @@ def enqueue_single_item(params, priority="normal", insert_first=False):
     default_dir = cfg.get("default_dir") or DEFAULT_DOWNLOAD_DIR
     job_id = params.get("job_id") or uuid.uuid4().hex[:10]
 
+    platform_info = detect_platform(url)
+    plat_name = platform_info.get("name", "Медиа")
+
     with QUEUE_LOCK:
         order_idx = len(QUEUE)
         new_item = {
             "id": job_id,
             "url": url,
-            "title": params.get("title") or "YouTube видео",
+            "platform": platform_info,
+            "title": params.get("title") or f"{plat_name} медиа",
             "uploader": params.get("uploader") or "",
             "thumbnail": params.get("thumbnail") or "",
             "duration": params.get("duration") or "",
@@ -548,6 +585,7 @@ def enqueue_single_item(params, priority="normal", insert_first=False):
             "mode": params.get("mode") or "both",
             "video_format_id": params.get("video_format_id") or "",
             "audio_format_id": params.get("audio_format_id") or "",
+            "is_progressive": bool(params.get("is_progressive") or params.get("has_audio")),
             "container": params.get("container") or "mp4",
             "audio_codec": params.get("audio_codec") or "mp3",
             "out_dir": params.get("out_dir") or default_dir,
@@ -590,7 +628,7 @@ def enqueue_single_item(params, priority="normal", insert_first=False):
         emit_socket("progress", {
             "job_id": job_id,
             "status": "starting",
-            "phase_label": "Подключение к YouTube…",
+            "phase_label": f"Подключение к {plat_name}…",
         })
         DOWNLOAD_EXECUTOR.submit(run_queue_download, job_id)
 
@@ -645,12 +683,14 @@ def probe_playlist_info(url, proxy=""):
         })
 
     thumb = info.get("thumbnail") or (valid_entries[0]["thumbnail"] if valid_entries else "")
+    pl_plat = detect_platform(url)
     return {
         "ok": True,
         "is_playlist": True,
+        "platform": pl_plat,
         "url": url,
-        "title": info.get("title") or "YouTube Плейлист",
-        "uploader": info.get("uploader") or info.get("channel") or "YouTube",
+        "title": info.get("title") or f"{pl_plat.get('name', 'Медиа')} Плейлист",
+        "uploader": info.get("uploader") or info.get("channel") or pl_plat.get("name", "Медиа"),
         "thumbnail": thumb,
         "total_count": len(valid_entries),
         "entries": valid_entries[:50],

@@ -2,6 +2,7 @@ import os
 import re
 import sys
 import time
+import hmac
 import subprocess
 import urllib.request
 from flask import Blueprint, render_template, request, jsonify, send_from_directory
@@ -12,6 +13,7 @@ from core.config import (
     APP_VERSION,
     BIN_DIR,
     DEFAULT_DOWNLOAD_DIR,
+    SESSION_AUTH_TOKEN,
     load_config,
     save_config,
 )
@@ -29,6 +31,7 @@ from core.engine import (
     get_resolution_label,
     LANGUAGE_NAMES,
     is_playlist_url,
+    detect_platform,
 )
 from core.queue_manager import (
     QUEUE,
@@ -52,6 +55,31 @@ from services.updater import (
 )
 
 api_bp = Blueprint("api", __name__)
+
+
+@api_bp.before_request
+def verify_session_token():
+    """
+    P0 Security Guard: Validates that all incoming API requests originate from
+    the trusted local WebView process by verifying the cryptographic SESSION_AUTH_TOKEN.
+    Protects against external browser tabs / malicious websites making CSRF/RCE requests to localhost.
+    """
+    # Allow root GUI page and favicon
+    if request.path in ("/", "/favicon.ico"):
+        return
+
+    # Allow local startup healthcheck without token
+    if request.path == "/api/status" and request.remote_addr in ("127.0.0.1", "::1", "localhost"):
+        return
+
+    token = request.headers.get("X-Auth-Token") or request.args.get("token")
+    if not token and request.is_json:
+        data = request.get_json(silent=True) or {}
+        if isinstance(data, dict):
+            token = data.get("auth_token")
+
+    if not token or not hmac.compare_digest(str(token), str(SESSION_AUTH_TOKEN)):
+        return jsonify({"ok": False, "error": "Unauthorized session token"}), 403
 
 
 def choose_directory(initial_dir=None):
@@ -80,6 +108,7 @@ def index():
         ytdlp_version=get_ytdlp_version(),
         app_version=APP_VERSION,
         language=cfg.get("language", "ru"),
+        auth_token=SESSION_AUTH_TOKEN,
     )
 
 
@@ -156,7 +185,8 @@ def get_app_update():
 def apply_app_update():
     data = request.get_json(silent=True) or {}
     asset_url = data.get("asset_url")
-    res = download_and_launch_installer(asset_url)
+    expected_sha256 = data.get("sha256")
+    res = download_and_launch_installer(asset_url, expected_sha256=expected_sha256)
     status_code = 200 if res.get("ok") else 500
     return jsonify(res), status_code
 
@@ -176,10 +206,11 @@ def probe():
     data = request.get_json(force=True) or {}
     url = data.get("url", "").strip()
     if not url:
-        return jsonify({"ok": False, "error": "Вставьте ссылку на видео."}), 400
+        return jsonify({"ok": False, "error": "Вставьте ссылку на медиаконтент."}), 400
 
     cfg = load_config()
     proxy = data.get("proxy", "").strip()
+    platform = detect_platform(url)
 
     # Task 5: Handle playlist URLs with preview metadata
     if is_playlist_url(url):
@@ -187,7 +218,7 @@ def probe():
             pl_info = probe_playlist_info(url, proxy)
             return jsonify(pl_info)
         except Exception as e_pl:
-            return jsonify({"ok": False, "error": format_user_friendly_error(str(e_pl))}), 400
+            return jsonify({"ok": False, "error": format_user_friendly_error(str(e_pl), url=url)}), 400
 
     ydl_opts = build_base_ydl_opts(cfg, proxy)
     ydl_opts.update({
@@ -206,9 +237,9 @@ def probe():
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     info = ydl.extract_info(url, download=False)
             except Exception as e2:
-                return jsonify({"ok": False, "error": format_user_friendly_error(str(e2))}), 400
+                return jsonify({"ok": False, "error": format_user_friendly_error(str(e2), url=url)}), 400
         else:
-            return jsonify({"ok": False, "error": format_user_friendly_error(str(e))}), 400
+            return jsonify({"ok": False, "error": format_user_friendly_error(str(e), url=url)}), 400
 
     # Task 3.2: Check if live stream
     is_live = bool(info.get("is_live") or info.get("live_status") == "is_live")
@@ -359,8 +390,11 @@ def probe():
     hrs, mins = divmod(mins, 60)
     dur_str = f"{hrs:d}:{mins:02d}:{secs:02d}" if hrs else f"{mins:d}:{secs:02d}"
 
+    has_prog = any(f.get("has_audio") for f in video_list)
+
     return jsonify({
         "ok": True,
+        "platform": platform,
         "title": info.get("title"),
         "uploader": info.get("uploader"),
         "thumbnail": thumbnail,
@@ -372,6 +406,7 @@ def probe():
         "audio_tracks": audio_tracks,
         "audio_formats": default_audio_formats,
         "subtitles": subtitles_list,
+        "has_progressive": has_prog,
     })
 
 

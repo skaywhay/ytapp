@@ -19,9 +19,9 @@ import urllib.request
 from flask import Flask
 
 from core.config import BUNDLE_DIR, DEFAULT_DOWNLOAD_DIR, get_user_data_dir
-from core.engine import ffmpeg_available
+from core.engine import ffmpeg_available, cleanup_temp_cookies
 from core.queue_manager import start_background_workers
-from api.sockets import init_sockets
+from api.sockets import init_sockets, ALLOWED_ORIGINS
 from api.routes import api_bp
 
 
@@ -61,6 +61,9 @@ def open_browser(port):
 def run_app():
     env_port = os.environ.get("PORT")
     port = int(env_port) if env_port else find_available_port(5050)
+
+    # Register active server origins for strict CORS whitelist
+    ALLOWED_ORIGINS.extend([f"http://127.0.0.1:{port}", f"http://localhost:{port}"])
 
     if "--browser" in sys.argv:
         print("=" * 60)
@@ -109,6 +112,7 @@ def run_app():
         open_browser(port)
         server_thread.join()
     finally:
+        cleanup_temp_cookies()
         os._exit(0)
 
 

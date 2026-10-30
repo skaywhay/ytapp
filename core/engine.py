@@ -2,8 +2,10 @@ import os
 import re
 import sys
 import uuid
+import stat
 import shutil
 import atexit
+import signal
 import sqlite3
 import subprocess
 from pathlib import Path
@@ -11,17 +13,53 @@ from pathlib import Path
 import yt_dlp
 from core.config import APP_DIR, BUNDLE_DIR, BIN_DIR, TEMP_COOKIES_DIR
 
+# Registry of active shadow directories for reliable cleanup
+_active_shadow_dirs = set()
 
-# Clean up temporary cookie files on process termination
-def cleanup_temp_cookies():
+
+def _force_remove_readonly(func, path, exc_info):
+    """Clears read-only bits to ensure deletion on Windows."""
+    try:
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+    except Exception:
+        pass
+
+
+def cleanup_temp_cookies(specific_dir=None):
+    """
+    Safely and guaranteed removes temporary shadow cookies and DPAPI keyring copies.
+    Can clean a specific session directory or purge all stale directories.
+    """
+    global _active_shadow_dirs
+    if specific_dir:
+        if os.path.isdir(specific_dir):
+            try:
+                shutil.rmtree(specific_dir, onerror=_force_remove_readonly, ignore_errors=True)
+            except Exception:
+                pass
+        _active_shadow_dirs.discard(specific_dir)
+        return
+
+    # Clean all registered active dirs
+    for d in list(_active_shadow_dirs):
+        if os.path.isdir(d):
+            try:
+                shutil.rmtree(d, onerror=_force_remove_readonly, ignore_errors=True)
+            except Exception:
+                pass
+    _active_shadow_dirs.clear()
+
+    # Clean the root temp cookies directory
     if os.path.isdir(TEMP_COOKIES_DIR):
         try:
             for item in os.listdir(TEMP_COOKIES_DIR):
                 p = os.path.join(TEMP_COOKIES_DIR, item)
                 if os.path.isdir(p):
-                    shutil.rmtree(p, ignore_errors=True)
+                    shutil.rmtree(p, onerror=_force_remove_readonly, ignore_errors=True)
                 elif os.path.isfile(p):
                     try:
+                        os.chmod(p, stat.S_IWRITE)
                         os.remove(p)
                     except Exception:
                         pass
@@ -30,8 +68,66 @@ def cleanup_temp_cookies():
 
 
 atexit.register(cleanup_temp_cookies)
-# Also clean up any stale cookies from previous runs on module load
+
+# Safe termination signal listeners for emergency cleanup
+def _signal_handler(signum, frame):
+    cleanup_temp_cookies()
+    sys.exit(0)
+
+
+for sig_name in ("SIGINT", "SIGTERM", "SIGBREAK"):
+    sig = getattr(signal, sig_name, None)
+    if sig is not None:
+        try:
+            signal.signal(sig, _signal_handler)
+        except Exception:
+            pass
+
+# Clean up any stale cookies from previous runs on module load
 cleanup_temp_cookies()
+
+
+def detect_platform(url_str):
+    """
+    Smart Platform Detector for 1800+ media sites supported by yt-dlp.
+    Returns platform identity with ID, human label, chip badge tag, and theme color.
+    """
+    u = (url_str or "").strip().lower()
+    if not u:
+        return {"id": "unknown", "name": "Медиа", "badge": "URL", "color": "#71717A"}
+
+    if "youtube.com" in u or "youtu.be" in u:
+        return {"id": "youtube", "name": "YouTube", "badge": "YT", "color": "#FF0000"}
+    if "vk.com" in u or "vkvideo.ru" in u:
+        return {"id": "vk", "name": "VK Видео", "badge": "VK", "color": "#0077FF"}
+    if "rutube.ru" in u:
+        return {"id": "rutube", "name": "Rutube", "badge": "RT", "color": "#00A1E7"}
+    if "tiktok.com" in u:
+        return {"id": "tiktok", "name": "TikTok", "badge": "TT", "color": "#FE2C55"}
+    if "twitch.tv" in u:
+        return {"id": "twitch", "name": "Twitch", "badge": "TW", "color": "#9146FF"}
+    if "instagram.com" in u:
+        return {"id": "instagram", "name": "Instagram", "badge": "IG", "color": "#E1306C"}
+    if "reddit.com" in u:
+        return {"id": "reddit", "name": "Reddit", "badge": "RD", "color": "#FF4500"}
+    if "x.com" in u or "twitter.com" in u:
+        return {"id": "x", "name": "X (Twitter)", "badge": "X", "color": "#1DA1F2"}
+    if "vimeo.com" in u:
+        return {"id": "vimeo", "name": "Vimeo", "badge": "VM", "color": "#1AB7EA"}
+    if "soundcloud.com" in u:
+        return {"id": "soundcloud", "name": "SoundCloud", "badge": "SC", "color": "#FF5500"}
+
+    # Extract hostname for any of the other 1800+ platforms
+    try:
+        from urllib.parse import urlparse
+        host = urlparse(url_str).netloc.lower()
+        if host.startswith("www."):
+            host = host[4:]
+        clean_name = host.split(":")[0] if host else "Медиа-источник"
+        badge = clean_name.split(".")[0][:3].upper() if clean_name else "WEB"
+        return {"id": "generic", "name": clean_name, "badge": badge, "color": "var(--md-sys-color-primary)"}
+    except Exception:
+        return {"id": "generic", "name": "Медиа-источник", "badge": "WEB", "color": "var(--md-sys-color-primary)"}
 
 
 def find_ffmpeg():
@@ -235,9 +331,11 @@ def prepare_shadow_cookies(browser_name):
                 except Exception:
                     pass
 
+        _active_shadow_dirs.add(shadow_dir)
         return shadow_dir
     except Exception as e:
         print(f"Shadow cookie copy note for {browser_name}: {e}")
+        cleanup_temp_cookies(shadow_dir)
         return None
 
 
@@ -317,8 +415,11 @@ def cleanup_temp_files(out_dir, base_title=None):
         print(f"Error cleaning temp files: {e}")
 
 
-def format_user_friendly_error(err_str):
-    low = err_str.lower()
+def format_user_friendly_error(err_str, url=""):
+    low = (err_str or "").lower()
+    platform_info = detect_platform(url) if url else {"id": "generic", "name": "сервиса"}
+    plat_name = platform_info.get("name", "сервиса")
+
     if (
         "read timed out" in low
         or "connection timed out" in low
@@ -333,30 +434,30 @@ def format_user_friendly_error(err_str):
         or "unable to download video data" in low
     ):
         return (
-            "Сбой/таймаут соединения с серверами YouTube (googlevideo.com). "
-            "Провайдер или ТСПУ/DPI замедляет или блокирует потоки YouTube. "
-            "Решение: укажите рабочий прокси (SOCKS5/HTTP) в «Настройках» "
-            "или запустите средство обхода замедления (VPN / Zapret / GoodbyeDPI)."
+            f"Сбой или таймаут соединения с серверами {plat_name}. "
+            "Провайдер или сетевой фильтр замедляет или блокирует потоки данных. "
+            "Решение: укажите рабочий прокси (SOCKS5/HTTP) во вкладке «Настройки» "
+            "или используйте средство обхода сетевых ограничений."
         )
     if "sign in to confirm you're not a bot" in low or "confirm you're not a bot" in low or "bot detection" in low:
         return (
-            "YouTube требует подтверждения авторизации (защита от ботов). "
+            f"{plat_name} требует подтверждения авторизации (защита от ботов / капча). "
             "Перейдите во вкладку «Настройки» и выберите ваш браузер в пункте «Импорт авторизации (Cookies)»."
         )
     if "confirm your age" in low or "inappropriate" in low or ("age" in low and "restricted" in low):
         return (
-            "Ролик имеет возрастное ограничение 18+. "
+            "Медиаконтент имеет возрастное ограничение 18+. "
             "Включите «Импорт авторизации (Cookies)» из вашего браузера во вкладке «Настройки»."
         )
     if "private video" in low or "is private" in low:
         return (
-            "Это приватное видео. Если у вашего аккаунта есть доступ, "
+            "Это приватный медиафайл. Если у вашего аккаунта есть доступ, "
             "включите импорт Cookies из браузера в «Настройках»."
         )
     if "video unavailable" in low:
-        return "Видео недоступно. Возможно, оно удалено или заблокировано в вашем регионе. Попробуйте настроить прокси."
+        return f"Контент недоступен на серверах {plat_name}. Возможно, он удален или заблокирован в вашем регионе. Попробуйте настроить прокси."
     if "429" in low or "too many requests" in low:
-        return "YouTube временно ограничил запросы (429 Too Many Requests). Подключите прокси или импорт cookies."
+        return f"{plat_name} временно ограничил запросы (429 Too Many Requests). Подключите прокси или импорт cookies."
     if "failed to decrypt" in low or ("cookies" in low and "database" in low) or "database is locked" in low:
         return (
             "Не удалось безопасно извлечь авторизацию из браузера. "

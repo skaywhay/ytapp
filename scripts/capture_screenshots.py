@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import os
 import sys
 import time
@@ -8,6 +9,19 @@ import threading
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+def find_browser():
+    candidates = [
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        os.path.expandvars(r"%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"),
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+    ]
+    for c in candidates:
+        if os.path.isfile(c):
+            return c
+    return None
 
 def start_server():
     from server import app, socketio
@@ -28,10 +42,11 @@ def capture():
     os.makedirs("assets/screenshots/ru", exist_ok=True)
     os.makedirs("assets/screenshots/en", exist_ok=True)
 
-    chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
-    if not os.path.exists(chrome_path):
-        print(f"Chrome not found at {chrome_path}")
+    browser_path = find_browser()
+    if not browser_path:
+        print("Neither Chrome nor Edge found!")
         return
+    print(f"Using browser: {browser_path}")
 
     langs = [
         ("ru", "assets/screenshots/ru"),
@@ -39,10 +54,10 @@ def capture():
     ]
 
     modes = [
-        ("hero_preview.png", "hero", "1200,820"),
-        ("trim_editor.png", "trim", "1200,820"),
-        ("queue_manager.png", "queue", "1200,820"),
-        ("settings_monet.png", "settings", "1200,820"),
+        ("hero_preview.png", "hero", "1240,840"),
+        ("trim_editor.png", "trim", "1240,840"),
+        ("queue_manager.png", "queue", "1240,840"),
+        ("settings_monet.png", "settings", "1240,840"),
     ]
 
     for lang, folder in langs:
@@ -50,13 +65,13 @@ def capture():
             url = f"http://127.0.0.1:5055/?preview={preview_mode}&lang={lang}"
             out_path = os.path.abspath(os.path.join(folder, filename))
             cmd = [
-                chrome_path,
+                browser_path,
                 "--headless=new",
                 f"--screenshot={out_path}",
                 f"--window-size={win_size}",
                 "--hide-scrollbars",
                 "--disable-gpu",
-                "--virtual-time-budget=2000",
+                "--virtual-time-budget=2500",
                 url
             ]
             print(f"Capturing [{lang.upper()}] {filename} from {url}...")
@@ -82,6 +97,7 @@ if __name__ == "__main__":
         print("Server is up, starting screenshot capture...")
         capture()
         print("All screenshots captured successfully.")
+        os._exit(0)
     else:
         print("Server failed to start.")
         sys.exit(1)

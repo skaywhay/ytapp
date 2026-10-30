@@ -1,7 +1,11 @@
 import os
 import sys
 import json
+import secrets
 from pathlib import Path
+
+# Cryptographically secure per-session authentication token for localhost API & WebSocket
+SESSION_AUTH_TOKEN = secrets.token_hex(24)
 
 if getattr(sys, "frozen", False):
     BUNDLE_DIR = sys._MEIPASS
@@ -45,7 +49,7 @@ if os.path.isdir(LOCAL_YTDLP_DIR) and LOCAL_YTDLP_DIR not in sys.path:
 TEMP_COOKIES_DIR = os.path.join(USER_DATA_DIR, "temp_cookies")
 os.makedirs(TEMP_COOKIES_DIR, exist_ok=True)
 
-APP_VERSION = "2.5.3"
+APP_VERSION = "2.6.0"
 GITHUB_REPO = "skaywhay/ytapp"
 
 CONFIG_FILE = os.path.join(USER_DATA_DIR, "config.json")

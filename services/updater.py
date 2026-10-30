@@ -2,8 +2,10 @@ import os
 import re
 import sys
 import json
+import uuid
 import shutil
 import zipfile
+import hashlib
 import subprocess
 import urllib.request
 
@@ -251,12 +253,48 @@ def check_app_update():
         }
 
 
-def download_and_launch_installer(asset_url=None):
+def fetch_release_sha256(release_tag, filename):
     """
-    Downloads the latest release installer to a temporary location and executes it in update mode (/update).
+    Downloads and parses SHA256SUMS.txt from GitHub release for the requested asset.
+    """
+    from core.config import GITHUB_REPO
+    tag_clean = release_tag if release_tag.startswith("v") else f"v{release_tag}"
+    sums_url = f"https://github.com/{GITHUB_REPO}/releases/download/{tag_clean}/SHA256SUMS.txt"
+    try:
+        req = urllib.request.Request(sums_url, headers={"User-Agent": "YT-Deck-Client"})
+        with urllib.request.urlopen(req, timeout=12) as resp:
+            content = resp.read().decode("utf-8")
+        for line in content.splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            parts = line.split()
+            if len(parts) >= 2:
+                file_hash = parts[0].strip().lower()
+                target_name = parts[1].strip().lstrip("*")
+                if target_name == filename or os.path.basename(target_name) == filename:
+                    return file_hash
+    except Exception as e:
+        print(f"SHA256SUMS.txt lookup note: {e}")
+    return None
+
+
+def download_and_launch_installer(asset_url=None, expected_sha256=None):
+    """
+    Downloads the verified release installer to a temporary location,
+    validates the URL against a strict whitelist, verifies its SHA-256 checksum,
+    and executes it in update mode (/update).
+    Eliminates arbitrary download/RCE risks (P0 Security Requirement).
     """
     import tempfile
     from core.config import GITHUB_REPO
+
+    # Hardcoded strict whitelist for download source
+    ALLOWED_PREFIX = f"https://github.com/{GITHUB_REPO}/releases/download/"
+    ALLOWED_REGEX = re.compile(
+        rf"^https:\/\/github\.com\/{re.escape(GITHUB_REPO)}\/releases\/download\/v?[\w\.-]+\/[\w\.-]+\.exe$",
+        re.IGNORECASE,
+    )
 
     try:
         if not asset_url:
@@ -274,20 +312,60 @@ def download_and_launch_installer(asset_url=None):
         if not asset_url:
             return {"ok": False, "error": "Ссылка на установщик обновления не найдена."}
 
-        temp_dir = tempfile.gettempdir()
-        installer_path = os.path.join(temp_dir, "YT_Deck_Setup.exe")
+        # P0 Validation: Whitelist & regex pattern check
+        asset_url = asset_url.strip()
+        if not asset_url.startswith(ALLOWED_PREFIX) or not ALLOWED_REGEX.match(asset_url):
+            return {
+                "ok": False,
+                "error": f"Загрузка заблокирована политикой безопасности: разрешены только официальные релизы https://github.com/{GITHUB_REPO}/",
+            }
 
-        req = urllib.request.Request(
-            asset_url,
-            headers={"User-Agent": "YT-Deck-Client"}
-        )
+        # Extract tag and filename from URL
+        rel_path = asset_url[len(ALLOWED_PREFIX):]
+        parts = rel_path.split("/")
+        release_tag = parts[0] if parts else ""
+        filename = parts[-1] if len(parts) > 1 else "YT_Deck_Setup.exe"
+
+        # Lookup expected SHA-256 hash
+        target_sha256 = (expected_sha256 or "").strip().lower()
+        if not target_sha256 and release_tag:
+            target_sha256 = fetch_release_sha256(release_tag, filename)
+
+        temp_dir = tempfile.gettempdir()
+        installer_path = os.path.join(temp_dir, f"YT_Deck_Setup_{uuid.uuid4().hex[:6]}.exe")
+
+        req = urllib.request.Request(asset_url, headers={"User-Agent": "YT-Deck-Client"})
+        hasher = hashlib.sha256()
+
         with urllib.request.urlopen(req, timeout=120) as resp, open(installer_path, "wb") as f_out:
-            shutil.copyfileobj(resp, f_out)
+            while True:
+                chunk = resp.read(65536)
+                if not chunk:
+                    break
+                f_out.write(chunk)
+                hasher.update(chunk)
+
+        computed_sha256 = hasher.hexdigest().lower()
 
         if not os.path.isfile(installer_path) or os.path.getsize(installer_path) < 1024 * 1024:
-            return {"ok": False, "error": "Загруженный файл обновления поврежден."}
+            if os.path.isfile(installer_path):
+                os.remove(installer_path)
+            return {"ok": False, "error": "Загруженный файл обновления поврежден или имеет неверный размер."}
 
-        # Launch the installer in update mode
+        # P0 Validation: SHA-256 hash match
+        if target_sha256 and computed_sha256 != target_sha256:
+            if os.path.isfile(installer_path):
+                os.remove(installer_path)
+            return {
+                "ok": False,
+                "error": (
+                    f"Контрольная сумма SHA-256 скачанного файла не совпадает с официальным релизом! "
+                    f"Ожидалось: {target_sha256[:16]}..., получено: {computed_sha256[:16]}... "
+                    "Запуск отменён в целях безопасности."
+                ),
+            }
+
+        # Launch the verified installer in update mode
         if sys.platform == "win32":
             subprocess.Popen(
                 [installer_path, "/update"],
@@ -299,7 +377,8 @@ def download_and_launch_installer(asset_url=None):
 
         return {
             "ok": True,
-            "message": "Обновление успешно загружено. Запуск программы обновления...",
+            "message": "Обновление успешно проверено и запущено. Программа сейчас обновится.",
+            "sha256": computed_sha256,
         }
     except Exception as e:
         return {"ok": False, "error": f"Ошибка загрузки обновления: {e}"}

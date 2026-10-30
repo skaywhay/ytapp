@@ -1,13 +1,38 @@
 /**
  * YT Deck — Client Controller (Material Design 3 Expressive)
- * Version: 2.4 (Multi-Stream Batch Queue, Prioritized Bandwidth Management, Material 3 Expressive)
+ * Version: 2.5 (Universal Multiplatform Media Combiner, Material 3 Expressive)
  */
 
-// Initialize Socket.IO connection
-const socket = io();
+// P0 Security: Session Token Authentication & Fetch Interceptor
+const SESSION_AUTH_TOKEN = window.__AUTH_TOKEN__ || '';
+const socket = io({ auth: { token: SESSION_AUTH_TOKEN } });
+
+const _origFetch = window.fetch;
+window.fetch = function (input, init) {
+  init = init || {};
+  init.headers = init.headers || {};
+  if (SESSION_AUTH_TOKEN) {
+    if (init.headers instanceof Headers) {
+      if (!init.headers.has('X-Auth-Token')) init.headers.set('X-Auth-Token', SESSION_AUTH_TOKEN);
+    } else if (Array.isArray(init.headers)) {
+      init.headers.push(['X-Auth-Token', SESSION_AUTH_TOKEN]);
+    } else {
+      init.headers['X-Auth-Token'] = SESSION_AUTH_TOKEN;
+    }
+  }
+  return _origFetch.call(this, input, init);
+};
 
 // Helper selector
 const $ = (id) => document.getElementById(id);
+
+// Platform & Universal Elements
+const platformChip = $('platform-chip');
+const platformChipIcon = $('platform-chip-icon');
+const platformChipText = $('platform-chip-text');
+const trackPlatformBadge = $('track-platform-badge');
+const smartConfigCard = $('smart-config-card');
+let currentPlatform = null;
 
 // Navigation Elements
 const tabDeckBtn = $('tab-deck-btn');
@@ -454,26 +479,53 @@ const I18N = {
     theme_toggle_title: 'Сменить тему (Светлая / Тёмная)',
     lang_toggle_title: 'Сменить язык (RU / EN)',
 
-    slot1_title: 'Ссылка на видео',
-    slot1_caption: 'Вставьте адрес ролика, Shorts или плейлиста YouTube',
-    slot1_label: 'Ссылка на видео YouTube',
+    slot1_title: 'Ссылка на медиа',
+    slot1_caption: 'Вставьте адрес видео, трека или стрима с любой из 1800+ платформ',
+    slot1_label: 'Ссылка на видео или аудио',
     btn_clear_url: 'Очистить поле',
     btn_paste_url: 'Вставить из буфера обмена',
     btn_probe: 'Найти видео',
     btn_probe_loading: 'Ищем…',
     btn_probe_found: 'Найдено!',
     btn_probe_error: 'Ошибка',
-    clipboard_detected: 'В буфере найдена ссылка на YouTube. Вставить?',
+    clipboard_detected: 'В буфере найдена медиа-ссылка. Вставить?',
     btn_paste: 'Вставить',
-    proxy_toggle: 'Сетевой прокси / SOCKS (обход блокировок)',
+    proxy_toggle: 'Сетевой прокси / SOCKS (обход замедлений и блокировок)',
     proxy_label: 'Адрес прокси (socks5://127.0.0.1:1080 или http://...)',
-    proxy_hint: 'Если доступ к YouTube ограничен провайдером или VPN не маршрутизирует CLI-трафик — введите локальный адрес прокси.',
+    proxy_hint: 'Если доступ к сервису ограничен провайдером или VPN не маршрутизирует CLI-трафик — введите локальный адрес прокси.',
     quick_examples_title: 'Быстрые примеры:',
     quick_4k: 'Клип в 4K Ultra HD',
-    quick_shorts: 'YouTube Shorts',
+    quick_shorts: 'Короткие видео (Shorts / Reels)',
     quick_audio: 'Аудиоподкаст (MP3)',
-    empty_ready: 'Готов к загрузке',
-    empty_desc: 'Вставьте ссылку на ролик или Shorts в поле выше, либо перетащите файл прямо в это окно',
+    empty_ready: 'Универсальный медиа-комбайн',
+    empty_desc: 'Вставьте ссылку на видео, аудио или плейлист (YouTube, VK Видео, Rutube, TikTok, Twitch и 1800+ других)',
+    platforms_supported_label: 'Поддерживаемые платформы:',
+    platform_youtube: 'YouTube',
+    platform_vk: 'VK Видео',
+    platform_rutube: 'Rutube',
+    platform_tiktok: 'TikTok',
+    platform_twitch: 'Twitch',
+    platform_reddit: 'Reddit',
+    platform_x: 'X / Twitter',
+    platform_instagram: 'Instagram',
+    platform_vimeo: 'Vimeo',
+    platform_soundcloud: 'SoundCloud',
+    platform_generic: 'Веб-источник',
+    platform_more: '+1800 других',
+    platform_chip_default: 'Платформа',
+    platform_yt_title: 'Поддерживается скачивание с YouTube',
+    platform_vk_title: 'Поддерживается скачивание с VK Видео',
+    platform_rt_title: 'Поддерживается скачивание с Rutube',
+    platform_tt_title: 'Поддерживается скачивание с TikTok',
+    platform_tw_title: 'Поддерживается скачивание с Twitch',
+    platform_rd_title: 'Поддерживается скачивание с Reddit',
+    platform_x_title: 'Поддерживается скачивание с X (Twitter)',
+    platform_ig_title: 'Поддерживается скачивание с Instagram',
+    platform_vm_title: 'Поддерживается скачивание с Vimeo',
+    platform_sc_title: 'Поддерживается скачивание с SoundCloud',
+    platform_more_title: 'Поддержка более 1800 других сайтов и сервисов',
+    preset_1080p_short: '1080p Full HD',
+    preset_720p_short: '720p HD',
 
     btn_save_thumb: 'Скачать обложку',
     stat_views: 'просмотров',
@@ -498,6 +550,11 @@ const I18N = {
     preset_flac: 'FLAC · Lossless (студийный звук без потерь)',
     preset_wav: 'WAV · Без сжатия (несжатое аудио)',
     preset_best_video: 'Максимальное качество',
+    preset_best_short: 'Максимальное',
+    preset_audio_short: 'Аудио MP3',
+    expert_toggle_btn: 'Настроить потоки',
+    trim_toggle_btn: 'Обрезка',
+    subtitles_toggle_btn: 'Субтитры',
     expert_toggle_show: 'Экспертный выбор дорожек',
     expert_toggle_hide: 'Скрыть экспертный выбор',
     expert_video_title: 'Параметры видеопотока',
@@ -640,26 +697,53 @@ const I18N = {
     theme_toggle_title: 'Switch theme (Light / Dark)',
     lang_toggle_title: 'Switch language (EN / RU)',
 
-    slot1_title: 'Video Stream URL',
-    slot1_caption: 'Paste a YouTube video, Shorts, or playlist URL',
-    slot1_label: 'YouTube video URL',
+    slot1_title: 'Media Stream URL',
+    slot1_caption: 'Paste a video, audio, or playlist URL from 1800+ supported platforms',
+    slot1_label: 'Media stream URL',
     btn_clear_url: 'Clear URL',
     btn_paste_url: 'Paste from clipboard',
     btn_probe: 'Fetch Stream',
     btn_probe_loading: 'Fetching…',
     btn_probe_found: 'Found!',
     btn_probe_error: 'Error',
-    clipboard_detected: 'YouTube link detected in clipboard. Paste?',
+    clipboard_detected: 'Media link detected in clipboard. Paste?',
     btn_paste: 'Paste',
-    proxy_toggle: 'Network Proxy / SOCKS (Bypass Geo-blocks)',
+    proxy_toggle: 'Network Proxy / SOCKS (Bypass Geo-blocks & Throttling)',
     proxy_label: 'Proxy Address (socks5://127.0.0.1:1080 or http://...)',
-    proxy_hint: 'If YouTube access is restricted by your ISP or VPN does not route CLI traffic, enter a local proxy address.',
+    proxy_hint: 'If access is restricted by your ISP or VPN does not route CLI traffic, enter a local proxy address.',
     quick_examples_title: 'Quick Examples:',
     quick_4k: '4K Ultra HD Clip',
-    quick_shorts: 'YouTube Shorts',
+    quick_shorts: 'Shorts / Reels Clip',
     quick_audio: 'Audio Podcast (MP3)',
-    empty_ready: 'Ready to Download',
-    empty_desc: 'Paste a video or Shorts URL in the field above, or drag and drop a link into this window',
+    empty_ready: 'Universal Media Downloader',
+    empty_desc: 'Paste a video, audio, or playlist URL (YouTube, VK, Rutube, TikTok, Twitch, and 1800+ other sites)',
+    platforms_supported_label: 'Supported platforms:',
+    platform_youtube: 'YouTube',
+    platform_vk: 'VK Video',
+    platform_rutube: 'Rutube',
+    platform_tiktok: 'TikTok',
+    platform_twitch: 'Twitch',
+    platform_reddit: 'Reddit',
+    platform_x: 'X / Twitter',
+    platform_instagram: 'Instagram',
+    platform_vimeo: 'Vimeo',
+    platform_soundcloud: 'SoundCloud',
+    platform_generic: 'Web Source',
+    platform_more: '+1800 others',
+    platform_chip_default: 'Platform',
+    platform_yt_title: 'Download from YouTube supported',
+    platform_vk_title: 'Download from VK Video supported',
+    platform_rt_title: 'Download from Rutube supported',
+    platform_tt_title: 'Download from TikTok supported',
+    platform_tw_title: 'Download from Twitch supported',
+    platform_rd_title: 'Download from Reddit supported',
+    platform_x_title: 'Download from X (Twitter) supported',
+    platform_ig_title: 'Download from Instagram supported',
+    platform_vm_title: 'Download from Vimeo supported',
+    platform_sc_title: 'Download from SoundCloud supported',
+    platform_more_title: 'Support for over 1800 other sites and services',
+    preset_1080p_short: '1080p Full HD',
+    preset_720p_short: '720p HD',
 
     btn_save_thumb: 'Save Thumbnail',
     stat_views: 'views',
@@ -684,6 +768,11 @@ const I18N = {
     preset_flac: 'FLAC · Lossless (Studio Master Audio)',
     preset_wav: 'WAV · Uncompressed (PCM Audio)',
     preset_best_video: 'Maximum Quality',
+    preset_best_short: 'Max Quality',
+    preset_audio_short: 'Audio MP3',
+    expert_toggle_btn: 'Stream Config',
+    trim_toggle_btn: 'Trim',
+    subtitles_toggle_btn: 'Subtitles',
     expert_toggle_show: 'Expert Stream Selection',
     expert_toggle_hide: 'Hide Expert Selection',
     expert_video_title: 'Video Stream Details',
@@ -887,6 +976,19 @@ function applyLanguage(lang, save = true) {
   if (typeof updateMode === 'function') updateMode();
   if (typeof updateSimpleQualityDropdown === 'function') updateSimpleQualityDropdown(currentMode);
   if (typeof updateTrimSliderUI === 'function') updateTrimSliderUI();
+
+  // Update dynamic platform assist chip and loaded track badge
+  if (typeof updatePlatformChip === 'function') {
+    if (urlInput && urlInput.value && urlInput.value.trim()) {
+      updatePlatformChip(urlInput.value);
+    } else if (platformChipText) {
+      platformChipText.textContent = t('platform_chip_default', 'Платформа');
+    }
+  }
+
+  if (typeof updateTrackPlatformBadge === 'function' && typeof currentPlatform !== 'undefined' && currentPlatform && currentPlatform.id && trackPlatformBadge && !trackPlatformBadge.hidden) {
+    updateTrackPlatformBadge(currentPlatform.id, currentPlatform.name);
+  }
 
   // Update Topbar FFmpeg text
   if (topbarFfmpegText && topbarFfmpegPill) {
@@ -1610,23 +1712,139 @@ if (settingsPrefAudioFormat) {
 // 9. URL INPUT & CLEAR / PASTE CONTROLS (Task 4: Zero-Friction Debounced Auto-Probe)
 // ==========================================
 
+function getPlatformDisplayName(platformId, fallbackName = '') {
+  if (!platformId) return t('platform_generic', 'Веб-источник');
+  const key = 'platform_' + platformId;
+  const translated = t(key);
+  if (translated && translated !== key) {
+    return translated;
+  }
+  return fallbackName || platformId;
+}
+
+const PLATFORM_SVGS = {
+  youtube: '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M21.58 7.19a2.5 2.5 0 0 0-1.76-1.77C18.26 5 12 5 12 5s-6.26 0-7.82.42A2.5 2.5 0 0 0 2.42 7.19C2 8.76 2 12 2 12s0 3.24.42 4.81a2.5 2.5 0 0 0 1.76 1.77C5.74 19 12 19 12 19s6.26 0 7.82-.42a2.5 2.5 0 0 0 1.76-1.77C22 15.24 22 12 22 12s0-3.24-.42-4.81zM10 15V9l5.5 3-5.5 3z"/></svg>',
+  vk: '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12.68 18.5c-5.58 0-8.75-3.82-8.88-10.16h2.8c.09 4.66 2.15 6.63 3.78 7.04V8.34h2.63v4.02c1.61-.17 3.3-2 3.87-4.02h2.63a7.9 7.9 0 0 1-3.56 5.07c2.36 1.1 4.61 3.16 4.94 5.1h-2.91c-.43-1.61-1.89-2.85-3.87-3.05v3.05h-1.43z"/></svg>',
+  rutube: '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M4 4h7.2c3.5 0 6.3 2.7 6.3 6.1 0 2.5-1.5 4.6-3.7 5.6L19 20h-3.8l-4.5-3.8H7.5V20H4V4zm3.5 3.3v5.6h3.6c1.8 0 3.1-1.3 3.1-2.8s-1.3-2.8-3.1-2.8H7.5z"/></svg>',
+  tiktok: '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M19.32 7.18a4.9 4.9 0 0 1-3.46-3.54V3h-3.2v12.77a2.69 2.69 0 0 1-2.68 2.33 2.69 2.69 0 0 1-2.69-2.69 2.69 2.69 0 0 1 2.69-2.69c.3 0 .58.05.84.14V9.61a5.9 5.9 0 0 0-.84-.06 5.9 5.9 0 0 0-5.9 5.9 5.9 5.9 0 0 0 5.9 5.9 5.9 5.9 0 0 0 5.88-5.9V8.92a7.6 7.6 0 0 0 4.43 1.41V7.24c-.31 0-.64-.02-.97-.06z"/></svg>',
+  twitch: '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M4.27 3L3 6.27v12.55h4.36V22h3.27l3.28-3.18h2.73L21 14.45V3H4.27zm14.73 10.36l-2.73 2.73h-3.27l-2.73 2.73v-2.73H6.45V5.18h12.55v8.18zm-2.73-5.45h-1.64v4.91h1.64V7.91zm-4.36 0h-1.64v4.91h1.64V7.91z"/></svg>',
+  reddit: '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2zm4.18 3.95c.57 0 1.04.47 1.04 1.04a1.04 1.04 0 0 1-2.08.05l-2.16-.46-.67 3.12c1.52.06 2.9.53 3.9 1.24.26-.26.61-.41 1-.41.81 0 1.46.65 1.46 1.46 0 .6-.36 1.11-.84 1.34.03.14.04.29.04.44 0 2.25-2.61 4.06-5.84 4.06s-5.84-1.81-5.84-4.06c0-.15.01-.3.04-.44a1.45 1.45 0 0 1-.84-1.34c0-.81.65-1.46 1.46-1.46.39 0 .74.15 1 .41 1-.71 2.38-1.18 3.9-1.24l.74-3.48a.29.29 0 0 1 .32-.22l2.42.51c.08-.34.37-.59.73-.59zM9.7 12c-.57 0-1.04.47-1.04 1.04s.47 1.04 1.04 1.04 1.04-.47 1.04-1.04-.47-1.04-1.04-1.04zm4.6 0c-.57 0-1.04.47-1.04 1.04s.47 1.04 1.04 1.04 1.04-.47 1.04-1.04-.47-1.04-1.04-1.04zm-4.55 3.32a.48.48 0 0 0-.34.82c.7.7 1.63.83 2.59.83.96 0 1.89-.13 2.59-.83a.48.48 0 1 0-.68-.68c-.5.5-1.22.6-1.91.6s-1.41-.1-1.91-.6a.48.48 0 0 0-.34-.14z"/></svg>',
+  x: '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M17.69 3h2.92l-6.38 7.3 7.5 9.7h-5.88l-4.6-6.02-5.27 6.02H3.06l6.83-7.8L2.7 3h6.03l4.16 5.5L17.69 3zm-1.03 15.2h1.62L8.2 4.67H6.46l10.2 13.53z"/></svg>',
+  instagram: '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 4.62c2.4 0 2.69.01 3.64.05 2.45.11 3.58 1.25 3.69 3.69.04.95.05 1.24.05 3.64 0 2.4-.01 2.69-.05 3.64-.11 2.43-1.24 3.58-3.69 3.69-.95.04-1.24.05-3.64.05-2.4 0-2.69-.01-3.64-.05-2.45-.11-3.58-1.25-3.69-3.69-.04-.95-.05-1.24-.05-3.64 0-2.4.01-2.69.05-3.64.11-2.44 1.24-3.58 3.69-3.69.95-.04 1.24-.05 3.64-.05M12 3c-2.45 0-2.75.01-3.71.05-3.27.15-5.09 1.97-5.24 5.24C3.01 9.25 3 9.55 3 12s.01 2.75.05 3.71c.15 3.27 1.97 5.09 5.24 5.24.96.04 1.26.05 3.71.05s2.75-.01 3.71-.05c3.27-.15 5.09-1.97 5.24-5.24.04-.96.05-1.26.05-3.71s-.01-2.75-.05-3.71c-.15-3.27-1.97-5.09-5.24-5.24C14.75 3.01 14.45 3 12 3zm0 4.38a4.62 4.62 0 1 0 0 9.24 4.62 4.62 0 0 0 0-9.24zm0 7.62a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm5.88-8.8a1.08 1.08 0 1 0 0 2.16 1.08 1.08 0 0 0 0-2.16z"/></svg>',
+  vimeo: '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M22.5 6.6c-.1 2.1-1.6 5-4.5 8.7-3 3.9-5.5 5.8-7.6 5.8-1.3 0-2.4-1.2-3.3-3.6L5 11.2C4.3 8.8 3.6 7.6 2.8 7.6c-.2 0-.8.4-1.8 1.1L0 7.4c1.1-1 2.2-2 3.3-2.9 1.5-1.3 2.6-1.9 3.3-2 1.7-.2 2.7.9 3.1 3.2.4 2.5.7 4 1 4.6.5 2.3 1.1 3.4 1.7 3.4.5 0 1.2-.7 2.1-2.2.9-1.5 1.4-2.6 1.5-3.4.1-1.3-.4-2-1.6-2-.6 0-1.2.1-1.8.4 1.2-3.8 3.4-5.6 6.7-5.5 2.5.1 3.7 1.7 3.6 4.7z"/></svg>',
+  soundcloud: '<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 9v8h7.5a3.5 3.5 0 0 0 3.5-3.5 3.5 3.5 0 0 0-3.1-3.47A4.7 4.7 0 0 0 15.4 6 4.6 4.6 0 0 0 12 7.5V9zm-2 1v7h-1.3V10.6c.4-.2.8-.4 1.3-.6zm-2.3 1v6H6.4v-5.5c.4-.2.8-.3 1.3-.5zm-2.3 1.1v4.9H4.1v-4.4c.4-.2.8-.3 1.3-.5zm-2.3.8v4.1H1.8v-3.7c.4-.1.8-.3 1.3-.4z"/></svg>',
+  generic: '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>'
+};
+
+function updateTrackPlatformBadge(platformId, customName = '') {
+  if (!trackPlatformBadge || !platformId) return;
+  const platSvg = PLATFORM_SVGS[platformId] || PLATFORM_SVGS.generic;
+  const platName = getPlatformDisplayName(platformId, customName);
+  trackPlatformBadge.innerHTML = `<span class="platform-badge-icon">${platSvg}</span><span class="platform-badge-text">${platName}</span>`;
+  trackPlatformBadge.dataset.platform = platformId;
+  trackPlatformBadge.title = t(`platform_${platformId}_title`, platName);
+  trackPlatformBadge.hidden = false;
+}
+
+let currentDetectedPlatformId = null;
+
+function detectPlatformClient(url) {
+  if (!url || typeof url !== 'string') return null;
+  const u = url.trim().toLowerCase();
+  let id = 'generic';
+  let fallbackName = 'Веб-источник';
+
+  if (u.includes('youtube.com') || u.includes('youtu.be')) {
+    id = 'youtube'; fallbackName = 'YouTube';
+  } else if (u.includes('vk.com') || u.includes('vkvideo.ru')) {
+    id = 'vk'; fallbackName = 'VK Видео';
+  } else if (u.includes('rutube.ru')) {
+    id = 'rutube'; fallbackName = 'Rutube';
+  } else if (u.includes('tiktok.com')) {
+    id = 'tiktok'; fallbackName = 'TikTok';
+  } else if (u.includes('twitch.tv')) {
+    id = 'twitch'; fallbackName = 'Twitch';
+  } else if (u.includes('reddit.com')) {
+    id = 'reddit'; fallbackName = 'Reddit';
+  } else if (u.includes('twitter.com') || u.includes('x.com')) {
+    id = 'x'; fallbackName = 'X (Twitter)';
+  } else if (u.includes('instagram.com')) {
+    id = 'instagram'; fallbackName = 'Instagram';
+  } else if (u.includes('vimeo.com')) {
+    id = 'vimeo'; fallbackName = 'Vimeo';
+  } else if (u.includes('soundcloud.com')) {
+    id = 'soundcloud'; fallbackName = 'SoundCloud';
+  } else if (u.startsWith('http://') || u.startsWith('https://')) {
+    try {
+      const parsed = new URL(url);
+      fallbackName = parsed.hostname.replace(/^www\./, '') || 'Веб-источник';
+    } catch (e) {
+      fallbackName = 'Веб-источник';
+    }
+  } else {
+    return null;
+  }
+
+  return {
+    id,
+    fallbackName,
+    name: getPlatformDisplayName(id, fallbackName),
+    svg: PLATFORM_SVGS[id] || PLATFORM_SVGS.generic
+  };
+}
+
+function updatePlatformChip(url) {
+  if (!platformChip) return;
+  const plat = detectPlatformClient(url);
+  if (plat) {
+    currentDetectedPlatformId = plat.id;
+    if (platformChipIcon) {
+      platformChipIcon.innerHTML = plat.svg;
+    }
+    if (platformChipText) {
+      platformChipText.textContent = getPlatformDisplayName(plat.id, plat.fallbackName);
+    }
+    platformChip.dataset.platform = plat.id;
+    platformChip.title = t(`platform_${plat.id}_title`, plat.name);
+    platformChip.hidden = false;
+  } else {
+    currentDetectedPlatformId = null;
+    platformChip.hidden = true;
+  }
+
+  // Highlight matching chip in the quick platforms mini-strip under URL input
+  const platChips = document.querySelectorAll('.cmd-plat-chip');
+  if (platChips && platChips.length) {
+    platChips.forEach(c => {
+      const match = plat && c.dataset.platformId === plat.id;
+      c.classList.toggle('active', match);
+    });
+  }
+}
+
+function isValidMediaUrl(str) {
+  if (!str || typeof str !== 'string') return false;
+  const s = str.trim();
+  return /^https?:\/\//i.test(s);
+}
+
 function isYouTubeUrl(str) {
-  if (!str) return false;
-  return /(?:youtu\.be\/|youtube\.com\/(?:watch|shorts|playlist|live))/i.test(str);
+  return isValidMediaUrl(str);
 }
 
 function handleUrlInputChange() {
   const val = urlInput ? urlInput.value.trim() : '';
   if (clearUrlBtn) clearUrlBtn.hidden = val.length === 0;
   clearFieldError();
+  updatePlatformChip(val);
 
   if (urlDebounceTimer) {
     clearTimeout(urlDebounceTimer);
     urlDebounceTimer = null;
   }
 
-  // Auto-probe with 700ms debounce when valid YouTube URL is typed or entered
-  if (val && isYouTubeUrl(val) && val !== lastProbedUrl) {
+  // Universal Auto-probe with 700ms debounce when valid Media URL is entered
+  if (val && isValidMediaUrl(val) && val !== lastProbedUrl) {
     urlDebounceTimer = setTimeout(() => {
       if (urlInput && urlInput.value.trim() === val && val !== lastProbedUrl) {
         lastProbedUrl = val;
@@ -1646,7 +1864,7 @@ if (urlInput) {
     setTimeout(() => {
       handleUrlInputChange();
       const val = urlInput.value.trim() || pastedText.trim();
-      if (val && isYouTubeUrl(val) && val !== lastProbedUrl) {
+      if (val && isValidMediaUrl(val) && val !== lastProbedUrl) {
         if (urlDebounceTimer) clearTimeout(urlDebounceTimer);
         lastProbedUrl = val;
         probe();
@@ -2150,6 +2368,80 @@ if (toggleExpertModeBtn) {
   });
 }
 
+// Modern M3 Smart Card: 4 Quick Segmented Tabs
+function initQuickPresetTabs() {
+  const container = $('quick-preset-tabs');
+  if (!container) return;
+  const buttons = container.querySelectorAll('.quick-tab-btn');
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      buttons.forEach((b) => {
+        b.classList.remove('active');
+        b.setAttribute('aria-checked', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-checked', 'true');
+
+      const preset = btn.dataset.preset;
+      const mode = btn.dataset.mode;
+      if (mode) setMode(mode);
+      if (preset === 'best') {
+        applySimplePreset('best');
+      } else if (preset === '1080p') {
+        applySimplePreset('1080');
+      } else if (preset === '720p') {
+        applySimplePreset('720');
+      } else if (preset === 'audio_mp3') {
+        applySimplePreset('mp3');
+      }
+    });
+  });
+}
+
+// Modern M3 Smart Card: Collapsible Accordion Drawers
+function initSmartDrawers() {
+  const expertBtn = $('toggle-expert-drawer-btn');
+  const trimBtn = $('toggle-trim-drawer-btn');
+  const subtitlesBtn = $('toggle-subtitles-drawer-btn');
+
+  const expertDrawer = $('expert-drawer');
+  const trimDrawer = $('trim-drawer');
+  const subtitlesDrawer = $('subtitles-drawer');
+
+  function toggleDrawer(btn, drawer) {
+    if (!btn || !drawer) return;
+    const isExpanded = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!isExpanded));
+    btn.classList.toggle('active', !isExpanded);
+    drawer.hidden = isExpanded;
+  }
+
+  if (expertBtn && expertDrawer) {
+    expertBtn.addEventListener('click', () => toggleDrawer(expertBtn, expertDrawer));
+  }
+  if (trimBtn && trimDrawer) {
+    trimBtn.addEventListener('click', () => {
+      toggleDrawer(trimBtn, trimDrawer);
+      if (!trimDrawer.hidden && trimEnabled && !trimEnabled.checked) {
+        trimEnabled.checked = true;
+        trimEnabled.dispatchEvent(new Event('change'));
+      }
+    });
+  }
+  if (subtitlesBtn && subtitlesDrawer) {
+    subtitlesBtn.addEventListener('click', () => {
+      toggleDrawer(subtitlesBtn, subtitlesDrawer);
+      if (!subtitlesDrawer.hidden && subtitlesEnabled && !subtitlesEnabled.checked) {
+        subtitlesEnabled.checked = true;
+        subtitlesEnabled.dispatchEvent(new Event('change'));
+      }
+    });
+  }
+}
+
+initQuickPresetTabs();
+initSmartDrawers();
+
 // ==========================================
 // 10.2 PLAYLIST MODAL DIALOG LOGIC (Task 5)
 // ==========================================
@@ -2159,8 +2451,8 @@ function showPlaylistModal(data) {
   if (!playlistModal) return;
 
   if (playlistPreviewThumb) playlistPreviewThumb.src = data.thumbnail || '';
-  if (playlistPreviewTitle) playlistPreviewTitle.textContent = data.title || 'Плейлист YouTube';
-  if (playlistPreviewUploader) playlistPreviewUploader.textContent = data.uploader || 'YouTube';
+  if (playlistPreviewTitle) playlistPreviewTitle.textContent = data.title || 'Медиа-плейлист';
+  if (playlistPreviewUploader) playlistPreviewUploader.textContent = data.uploader || 'Медиа-канал';
   const total = data.total_count || (data.entries ? data.entries.length : 0);
   if (playlistPreviewCount) playlistPreviewCount.textContent = `${total} видео`;
 
@@ -2427,17 +2719,20 @@ async function probe() {
   hideActionableError();
 
   if (!url) {
-    setFieldError('Пожалуйста, вставьте ссылку на ролик YouTube.');
+    setFieldError('Пожалуйста, вставьте ссылку на ролик или трек.');
     setProbeBtnState('empty', 'Вставьте URL');
     urlInput.focus();
-    showToast('Поле ввода пустое. Вставьте ссылку на YouTube', 'error', 3000);
+    showToast('Поле ввода пустое. Вставьте ссылку на медиаконтент', 'error', 3000);
     return;
   }
 
+  const detectedPlat = detectPlatformClient(url);
+  const platName = detectedPlat ? detectedPlat.name : 'источнику';
   setProbeBtnState('loading', 'Анализ…');
   if (skeletonCard) skeletonCard.hidden = false;
   if (emptyStateSection) emptyStateSection.hidden = true;
   if (trackCard) trackCard.hidden = true;
+  if (smartConfigCard) smartConfigCard.hidden = true;
   if (modeSlot) modeSlot.hidden = true;
   if (simpleQualityCard) simpleQualityCard.hidden = true;
   if (channelsSection) channelsSection.hidden = true;
@@ -2508,13 +2803,21 @@ async function probe() {
       }
     }
 
+    currentPlatform = data.platform || detectPlatformClient(url);
+    if (trackPlatformBadge && currentPlatform && currentPlatform.id) {
+      updateTrackPlatformBadge(currentPlatform.id, currentPlatform.name);
+    }
+
     if (trackCard) trackCard.hidden = false;
 
     // Fill Video Resolution Formats
     fillSelect(
       videoSelect,
       data.video_formats,
-      (f) => `${f.label}${f.size_h ? ' · ' + f.size_h : ''}`
+      (f) => {
+        const audioBadge = f.has_audio ? ' [Аудио]' : '';
+        return `${f.label}${audioBadge}${f.size_h ? ' · ' + f.size_h : ''}`;
+      }
     );
 
     // Fill Audio Tracks & Multi-language Dubs
@@ -2567,8 +2870,10 @@ async function probe() {
       updateCustomDropdown(subtitlesSelect);
     }
 
-    // Show interactive panels
+    // Show interactive panels (Modern M3 Compact Smart Card)
     if (emptyStateSection) emptyStateSection.hidden = true;
+    if (trackCard) trackCard.hidden = false;
+    if (smartConfigCard) smartConfigCard.hidden = false;
     if (modeSlot) modeSlot.hidden = false;
     if (simpleQualityCard) simpleQualityCard.hidden = false;
     if (channelsSection) channelsSection.hidden = !isCurrentExpert;
@@ -2660,7 +2965,8 @@ function handleDownloadProgressUpdate(data) {
 
   if (data.status === 'starting') {
     if (linearProg) linearProg.classList.add('indeterminate');
-    if (progressStatus) progressStatus.textContent = data.phase_label || 'Подключение к YouTube…';
+    const platName = (currentPlatform && currentPlatform.name) ? currentPlatform.name : 'источнику';
+    if (progressStatus) progressStatus.textContent = data.phase_label || `Подключение к ${platName}…`;
     if (progressStats) progressStats.textContent = 'Инициализация загрузки…';
   } else if (data.status === 'downloading') {
     if (linearProg) linearProg.classList.remove('indeterminate');
@@ -2673,11 +2979,21 @@ function handleDownloadProgressUpdate(data) {
     const spdText = data.speed || '';
     if (progressStats) progressStats.textContent = `${dlText} / ${totText}${spdText ? ' · ' + spdText : ''}`;
   } else if (data.status === 'merging') {
-    if (linearProg) linearProg.classList.add('indeterminate');
-    if (progressStatus) {
-      progressStatus.innerHTML = `<span class="merging-pulse">${GEAR_SPIN_SVG} ${data.stage_text || data.message || 'Склейка дорожек через FFmpeg. Для длинных видео это может занять 1–2 минуты, пожалуйста, подождите…'}</span>`;
+    const trimPct = data.trim_progress;
+    if (trimPct !== undefined && trimPct !== null && trimPct > 0) {
+      if (linearProg) linearProg.classList.remove('indeterminate');
+      if (ledFill) ledFill.style.width = `${trimPct}%`;
+      if (progressStatus) {
+        progressStatus.innerHTML = `<span class="merging-pulse">${GEAR_SPIN_SVG} Обработка FFmpeg (${trimPct}%)...</span>`;
+      }
+      if (progressStats) progressStats.textContent = `Кодирование: ${trimPct}%`;
+    } else {
+      if (linearProg) linearProg.classList.add('indeterminate');
+      if (progressStatus) {
+        progressStatus.innerHTML = `<span class="merging-pulse">${GEAR_SPIN_SVG} ${data.stage_text || data.message || 'Склейка дорожек через FFmpeg. Для длинных видео это может занять 1–2 минуты, пожалуйста, подождите…'}</span>`;
+      }
+      if (progressStats) progressStats.textContent = 'FFmpeg склейка…';
     }
-    if (progressStats) progressStats.textContent = 'FFmpeg склейка…';
   } else if (data.status === 'done') {
     stopJobPolling();
     if (linearProg) linearProg.classList.remove('indeterminate');
@@ -2718,6 +3034,9 @@ async function startDirectDownload() {
   if (splitDropdownMenu) splitDropdownMenu.hidden = true;
   if (splitMenuToggleBtn) splitMenuToggleBtn.setAttribute('aria-expanded', 'false');
 
+  const selVf = (lastProbedVideoFormats || []).find((f) => f.format_id === (videoSelect ? videoSelect.value : ''));
+  const isProgressive = !!(selVf && selVf.has_audio);
+
   const payload = {
     url: currentUrl,
     title: currentTitle,
@@ -2726,6 +3045,7 @@ async function startDirectDownload() {
     audio_format_id: audioSelect ? audioSelect.value : '',
     container: selectedContainer,
     audio_codec: selectedAudioFormat,
+    is_progressive: isProgressive,
     out_dir: (settingsDefaultDirInput?.value || destInput?.value || '').trim(),
     proxy: proxyInput ? proxyInput.value.trim() : '',
     subtitles_enabled: subtitlesEnabled ? subtitlesEnabled.checked : false,
@@ -2746,7 +3066,8 @@ async function startDirectDownload() {
   const linearProg = progressBlock ? progressBlock.querySelector('.m3-linear-progress') : null;
   if (linearProg) linearProg.classList.add('indeterminate');
 
-  if (progressStatus) progressStatus.textContent = 'Подключение к YouTube…';
+  const platName = (currentPlatform && currentPlatform.name) ? currentPlatform.name : 'источнику';
+  if (progressStatus) progressStatus.textContent = `Подключение к ${platName}…`;
   if (progressStats) progressStats.textContent = 'Инициализация загрузки…';
 
   stopJobPolling();
@@ -2830,6 +3151,9 @@ if (deckAddQueueBtn) {
       return;
     }
 
+    const selVf = (lastProbedVideoFormats || []).find((f) => f.format_id === (videoSelect ? videoSelect.value : ''));
+    const isProgressive = !!(selVf && selVf.has_audio);
+
     const payload = {
       url: currentUrl,
       title: currentTitle,
@@ -2843,6 +3167,7 @@ if (deckAddQueueBtn) {
       audio_format_id: audioSelect ? audioSelect.value : '',
       container: selectedContainer,
       audio_codec: selectedAudioFormat,
+      is_progressive: isProgressive,
       out_dir: (settingsDefaultDirInput?.value || destInput?.value || '').trim(),
       proxy: proxyInput ? proxyInput.value.trim() : '',
       subtitles_enabled: subtitlesEnabled ? subtitlesEnabled.checked : false,
@@ -2985,7 +3310,7 @@ if (batchSubmitBtn && batchUrlsInput) {
   batchSubmitBtn.addEventListener('click', async () => {
     const text = batchUrlsInput.value.trim();
     if (!text) {
-      showToast('Вставьте ссылки на YouTube', 'error', 2500);
+      showToast('Вставьте ссылки на медиа', 'error', 2500);
       return;
     }
 
@@ -3150,7 +3475,7 @@ function renderQueue(queueData) {
         </div>
 
         <div class="q-item-subline">
-          <span class="q-item-sub">${item.uploader || 'YouTube'}</span>
+          <span class="q-item-sub">${item.uploader || (item.platform ? item.platform.name : 'Медиа-канал')}</span>
           <span class="q-dot">·</span>
           <span class="q-item-sub font-mono">${modeLabel}</span>
           ${item.filename ? `<span class="q-dot">·</span><span class="q-item-filename font-mono">${item.filename}</span>` : ''}
@@ -3266,8 +3591,15 @@ socket.on('queue_progress', (data) => {
   const indicator = card.querySelector('.m3-progress-indicator');
 
   if (data.status === 'merging') {
-    if (linearProg) linearProg.classList.add('indeterminate');
-    card.classList.add('queue-item--merging');
+    const trimPct = data.trim_progress;
+    if (trimPct !== undefined && trimPct !== null && trimPct > 0) {
+      if (linearProg) linearProg.classList.remove('indeterminate');
+      card.classList.add('queue-item--merging');
+      if (indicator) indicator.style.width = `${trimPct}%`;
+    } else {
+      if (linearProg) linearProg.classList.add('indeterminate');
+      card.classList.add('queue-item--merging');
+    }
   } else {
     if (linearProg) linearProg.classList.remove('indeterminate');
     card.classList.remove('queue-item--merging');
@@ -3277,9 +3609,12 @@ socket.on('queue_progress', (data) => {
   const statsEl = card.querySelector('.q-item-stats');
   if (statsEl) {
     if (data.status === 'merging') {
+      const trimPct = data.trim_progress;
+      const progressLabel = (trimPct !== undefined && trimPct !== null && trimPct > 0) ? `${trimPct}%` : 'FFmpeg';
+      const msgLabel = (trimPct !== undefined && trimPct !== null && trimPct > 0) ? `Обработка FFmpeg: ${trimPct}%` : (data.stage_text || data.message || 'Склейка дорожек через FFmpeg…');
       statsEl.innerHTML = `
-        <span class="m3-color-primary font-weight-bold">99%</span>
-        <span class="merging-pulse">${GEAR_SPIN_SVG} ${data.stage_text || data.message || 'Склейка дорожек через FFmpeg…'}</span>
+        <span class="m3-color-primary font-weight-bold">${progressLabel}</span>
+        <span class="merging-pulse">${GEAR_SPIN_SVG} ${msgLabel}</span>
       `;
     } else {
       const phaseBadge = data.phase === 'video' ? ' · Видео' : (data.phase === 'audio' ? ' · Аудио' : '');
@@ -3348,13 +3683,13 @@ window.addEventListener('drop', (e) => {
       reader.onload = (evt) => {
         const content = evt.target.result;
         const lines = content.split(/\r?\n/);
-        const validUrl = lines.find((l) => l.includes('youtu.be') || l.includes('youtube.com'));
+        const validUrl = lines.find((l) => isValidMediaUrl(l.trim()));
         if (validUrl && urlInput) {
           urlInput.value = validUrl.trim();
           handleUrlInputChange();
           probe();
         } else {
-          showToast('В файле не найдено ссылок YouTube', 'error', 3000);
+          showToast('В файле не найдено медиа-ссылок', 'error', 3000);
         }
       };
       reader.readAsText(file);
@@ -3364,19 +3699,14 @@ window.addEventListener('drop', (e) => {
 
 // Smart Clipboard Detection
 let lastCheckedClipboard = '';
-async function checkClipboardForYouTubeLink() {
+async function checkClipboardForMediaLink() {
   if (!clipboardDetectChip || !navigator.clipboard || !navigator.clipboard.readText) return;
   try {
     const text = await navigator.clipboard.readText();
     if (!text) return;
     const trimmed = text.trim();
     if (trimmed === lastCheckedClipboard || (urlInput && trimmed === urlInput.value.trim())) return;
-    if (
-      trimmed.includes('youtube.com/watch') ||
-      trimmed.includes('youtu.be/') ||
-      trimmed.includes('youtube.com/shorts/') ||
-      trimmed.includes('youtube.com/playlist')
-    ) {
+    if (isValidMediaUrl(trimmed)) {
       lastCheckedClipboard = trimmed;
       clipboardDetectChip.hidden = false;
     }
@@ -3385,10 +3715,10 @@ async function checkClipboardForYouTubeLink() {
   }
 }
 
-window.addEventListener('focus', checkClipboardForYouTubeLink);
+window.addEventListener('focus', checkClipboardForMediaLink);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') {
-    checkClipboardForYouTubeLink();
+    checkClipboardForMediaLink();
   }
 });
 
@@ -3540,14 +3870,11 @@ function initPreviewMode() {
     if (extraOptionsSlot) extraOptionsSlot.hidden = false;
     if (transferSection) transferSection.hidden = false;
 
-    if (preview === 'hero') {
+    if (preview === 'hero' || preview === 'trim') {
       if (trackCard) trackCard.hidden = false;
-      if (modeSlot) modeSlot.hidden = false;
-      if (simpleQualityCard) simpleQualityCard.hidden = false;
-    } else {
-      if (trackCard) trackCard.hidden = true;
-      if (modeSlot) modeSlot.hidden = true;
-      if (simpleQualityCard) simpleQualityCard.hidden = true;
+      if (smartConfigCard) smartConfigCard.hidden = false;
+      updatePlatformChip('https://www.youtube.com/watch?v=WCtJ_EZQQBM');
+      updateTrackPlatformBadge('youtube', 'YouTube');
     }
 
     // Fill Video Formats
@@ -3584,9 +3911,13 @@ function initPreviewMode() {
     updateSimpleQualityDropdown('both');
 
     if (preview === 'trim') {
-      if (trackCard) trackCard.hidden = true;
-      if (modeSlot) modeSlot.hidden = true;
-      if (simpleQualityCard) simpleQualityCard.hidden = true;
+      const trimDrawer = $('trim-drawer');
+      if (trimDrawer) trimDrawer.hidden = false;
+      const toggleTrimBtn = $('toggle-trim-drawer-btn');
+      if (toggleTrimBtn) {
+        toggleTrimBtn.classList.add('active');
+        toggleTrimBtn.setAttribute('aria-expanded', 'true');
+      }
 
       const trimCheckbox = $('trim-enabled');
       const trimBody = $('trim-body');
