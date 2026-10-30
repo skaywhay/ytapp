@@ -8,6 +8,7 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:5050", "http://localhost:5050",
     "http://127.0.0.1:5051", "http://localhost:5051",
     "http://127.0.0.1:5052", "http://localhost:5052",
+    "http://127.0.0.1:5055", "http://localhost:5055",
     "http://127.0.0.1:5500", "http://localhost:5500",
     "http://127.0.0.1:8080", "http://localhost:8080",
 ]
